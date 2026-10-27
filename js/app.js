@@ -32,32 +32,86 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   // ==========================================
-  // THEME MANAGEMENT (需求 2: 深淺色模式)
+  // THEME MANAGEMENT (深淺色模式與系統外觀連動)
   // ==========================================
   const themeToggleBtn = document.getElementById("theme-toggle-btn");
   const themeIcon = document.getElementById("theme-icon");
+  const themeText = document.getElementById("theme-text");
+  const settingsThemeSelect = document.getElementById("settings-theme-select");
+
+  function getEffectiveTheme(preference) {
+    if (preference === "system") {
+      return (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
+    }
+    return preference === "light" ? "light" : "dark";
+  }
+
+  function applyTheme(themePref) {
+    const pref = themePref || localStorage.getItem("echoshadow_theme") || "dark";
+    const effective = getEffectiveTheme(pref);
+
+    document.documentElement.setAttribute("data-theme", effective);
+    localStorage.setItem("echoshadow_theme", pref);
+
+    // Update meta theme-color for mobile browser status bar
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      metaTheme.setAttribute("content", effective === "light" ? "#f8fafc" : "#0f172a");
+    }
+
+    if (themeIcon) {
+      themeIcon.textContent = effective === "light" ? "☀️" : "🌙";
+    }
+    if (themeText) {
+      themeText.textContent = effective === "light" ? "淺色模式" : "深色模式";
+    }
+    if (themeToggleBtn) {
+      themeToggleBtn.title = effective === "light" 
+        ? "目前為淺色模式，點擊切換為深色模式" 
+        : "目前為深色模式，點擊切換為淺色模式";
+      themeToggleBtn.setAttribute("aria-label", `切換主題模式 (目前為${effective === "light" ? "淺色" : "深色"})`);
+    }
+    if (settingsThemeSelect && settingsThemeSelect.value !== pref) {
+      settingsThemeSelect.value = pref;
+    }
+  }
 
   function initTheme() {
     const savedTheme = localStorage.getItem("echoshadow_theme") || "dark";
     applyTheme(savedTheme);
-  }
 
-  function applyTheme(theme) {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("echoshadow_theme", theme);
-    if (themeIcon) {
-      themeIcon.textContent = theme === "light" ? "☀️" : "🌙";
-    }
-    if (themeToggleBtn) {
-      themeToggleBtn.title = theme === "light" ? "目前為淺色模式，點擊切換深色" : "目前為深色模式，點擊切換淺色";
+    // Watch OS system theme changes if set to 'system'
+    if (window.matchMedia) {
+      try {
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: light)");
+        const handleChange = () => {
+          const currentPref = localStorage.getItem("echoshadow_theme") || "dark";
+          if (currentPref === "system") {
+            applyTheme("system");
+          }
+        };
+        if (mediaQuery.addEventListener) {
+          mediaQuery.addEventListener("change", handleChange);
+        } else if (mediaQuery.addListener) {
+          mediaQuery.addListener(handleChange);
+        }
+      } catch (err) {
+        console.warn("Theme mediaQuery listener warning:", err);
+      }
     }
   }
 
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener("click", () => {
-      const current = document.documentElement.getAttribute("data-theme") || "dark";
-      const nextTheme = current === "light" ? "dark" : "light";
+      const currentEffective = document.documentElement.getAttribute("data-theme") || "dark";
+      const nextTheme = currentEffective === "light" ? "dark" : "light";
       applyTheme(nextTheme);
+    });
+  }
+
+  if (settingsThemeSelect) {
+    settingsThemeSelect.addEventListener("change", (e) => {
+      applyTheme(e.target.value);
     });
   }
 
@@ -1375,11 +1429,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       const rateInput = document.getElementById("settings-rate-input");
       const intervalInput = document.getElementById("settings-interval-input");
       const repeatInput = document.getElementById("settings-repeat-input");
+      const themeSelect = document.getElementById("settings-theme-select");
 
       if (apiKeyInput) apiKeyInput.value = state.settings.apiKey || "";
       if (rateInput) rateInput.value = state.settings.rate;
       if (intervalInput) intervalInput.value = state.settings.interval;
       if (repeatInput) repeatInput.value = state.settings.repeatCount;
+      if (themeSelect) themeSelect.value = localStorage.getItem("echoshadow_theme") || "dark";
 
       settingsModal.classList.add("open");
     });
@@ -1398,6 +1454,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const rateInput = document.getElementById("settings-rate-input");
       const intervalInput = document.getElementById("settings-interval-input");
       const repeatInput = document.getElementById("settings-repeat-input");
+      const themeSelect = document.getElementById("settings-theme-select");
+
+      if (themeSelect) {
+        applyTheme(themeSelect.value);
+      }
 
       const newSettings = {
         apiKey: apiKeyInput ? apiKeyInput.value.trim() : "",

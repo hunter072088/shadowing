@@ -78,8 +78,9 @@
 
     <!-- Header Actions -->
     <div class="header-actions">
-      <button class="icon-btn theme-toggle-btn" id="theme-toggle-btn" title="切換深色/淺色模式" aria-label="切換深淺色模式">
-        <span id="theme-icon">🌙</span>
+      <button class="theme-toggle-btn" id="theme-toggle-btn" title="切換深色/淺色模式" aria-label="切換深淺色模式">
+        <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+        <span class="theme-toggle-text" id="theme-text">深色模式</span>
       </button>
       <button class="action-pill-btn header-mobile-btn" id="open-mobile-modal-btn" title="手機安裝與同網連線">
         <span>📱</span> 手機安裝
@@ -638,6 +639,16 @@
           <option value="10">10 遍</option>
           <option value="inf">無限循環播放</option>
         </select>
+      </div>
+
+      <div class="form-group">
+        <label for="settings-theme-select">🎨 介面主題外觀 (Theme Mode)：</label>
+        <select class="form-control" id="settings-theme-select">
+          <option value="dark">🌙 深色模式 (Dark Mode - 預設沉浸護眼)</option>
+          <option value="light">☀️ 淺色模式 (Light Mode - 明亮清晰)</option>
+          <option value="system">💻 跟隨系統外觀 (Auto - 自動偵測)</option>
+        </select>
+        <small>選擇您偏好的外觀顯示模式，切換即時生效並自動儲存。</small>
       </div>
 
       <div class="form-group">
