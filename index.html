@@ -6,6 +6,13 @@
   <title>EchoShadow 1314 — 英文口說 Shadowing 智能跟讀學習系統</title>
   <meta name="description" content="專為英文跟讀法（Shadowing）打造的智能學習系統。支援片語解析造句、單字簡單造句聽播、YouTube English Podcast 1314 精選道地片語庫與跟讀錄音對比。">
   
+  <script>
+    // Ensure trailing slash for GitHub Pages repo subdirectory so manifest & service worker resolve accurately
+    if (location.pathname.endsWith('/shadowing')) {
+      location.replace(location.pathname + '/' + location.search + location.hash);
+    }
+  </script>
+
   <!-- PWA & Mobile Web App Meta -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
@@ -19,6 +26,27 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+  <!-- In-App Browser Warning (LINE / FB WebView) -->
+  <div id="inapp-browser-banner" class="inapp-browser-banner" style="display: none;">
+    <div>⚠️ 偵測到您正在使用 <strong>LINE / 應用程式內建瀏覽器</strong>。受限於系統安全機制，無法直接安裝。請點擊右上角「<strong>⋮</strong>」或分享，選擇<strong>【在 Chrome 瀏覽器中開啟】</strong>即可一鍵安裝為手機 App！</div>
+    <button class="banner-close-btn" type="button" onclick="document.getElementById('inapp-browser-banner').style.display='none'">✕</button>
+  </div>
+
+  <!-- PWA Instant Install Floating Banner (Pixel / Android Chrome) -->
+  <div id="pwa-install-banner" class="pwa-install-banner" style="display: none;">
+    <div class="pwa-install-info">
+      <img src="icons/icon-192.png" alt="App Icon" width="38" height="38" style="border-radius: 8px;">
+      <div>
+        <div style="font-weight: 700; font-size: 0.92rem; color: #fff;">安裝 EchoShadow 1314 App</div>
+        <div style="font-size: 0.78rem; color: #94a3b8;">常駐 Pixel 桌面，離線全螢幕極速口說跟讀！</div>
+      </div>
+    </div>
+    <div class="pwa-install-actions">
+      <button id="pwa-banner-install-btn" class="primary-btn" type="button" style="padding: 0.45rem 1rem; font-size: 0.85rem;">📲 立即安裝</button>
+      <button class="banner-dismiss-btn" type="button" id="pwa-banner-dismiss-btn">稍後</button>
+    </div>
+  </div>
 
   <!-- App Header -->
   <header class="app-header">
@@ -478,15 +506,20 @@
             </ol>
           </div>
 
-          <div class="os-instruction-card" style="margin-top: 1rem;">
+          <div class="os-instruction-card" style="margin-top: 1rem; border-color: rgba(16, 185, 129, 0.4);">
             <div class="os-instruction-header">
               <span class="os-badge-icon">🤖</span>
-              <strong>Android 安卓手機 (Chrome / Edge) 操作步驟：</strong>
+              <strong>Google Pixel / Android 手機安裝指南：</strong>
             </div>
-            <ol class="os-steps-list">
-              <li>手機連線到同一個 Wi-Fi，打開 <strong>Chrome 瀏覽器</strong> 輸入上方網址。</li>
-              <li>網頁載入時會自動跳出 <strong>「安裝 EchoShadow」</strong> 提示，或點擊右上角三點選單「安裝應用程式」。</li>
-              <li>點擊「安裝」後，App 將自動常駐於桌面與應用程式清單，無任何系統相容問題！</li>
+
+            <button class="direct-install-btn" id="modal-direct-install-btn" type="button">
+              📲 點此一鍵安裝 EchoShadow App 到 Pixel
+            </button>
+
+            <ol class="os-steps-list" style="margin-top: 0.85rem;">
+              <li><strong>方式一（一鍵安裝）</strong>：點擊上方綠色按鈕，螢幕將跳出 Google 系統安裝對話框，點選「安裝」即可在 2 秒內自動常駐桌面。</li>
+              <li><strong>方式二（瀏覽器選單）</strong>：點擊 Chrome 右上角的三個點選單 <strong>「⋮」</strong> ➔ 點選 <strong>「安裝應用程式」</strong>（或「加到主畫面」）。</li>
+              <li><strong>⚠️ 重要提醒（LINE/通訊軟體內建瀏覽器）</strong>：若您是點擊朋友傳的連結打開，請注意通訊軟體（LINE/FB）會強制用簡易內嵌視窗開啟，這會<strong>封鎖 Android 系統安裝功能</strong>。請務必點右上角「⋮」選擇<strong>【在 Chrome 瀏覽器中開啟】</strong>！</li>
             </ol>
           </div>
         </div>
@@ -573,14 +606,94 @@
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
 
-  <!-- PWA Service Worker Registration -->
+  <!-- PWA & Mobile Installation Controller -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then((reg) => {
-          console.log('EchoShadow PWA Service Worker ready:', reg.scope);
+    // Global deferred install prompt for Android/Pixel
+    window.deferredInstallPrompt = null;
+
+    // Detect In-App Browsers (LINE, FB Messenger, Instagram, WeChat)
+    (function checkInAppBrowser() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera || "";
+      const isInApp = /Line\/|FBAN|FBAV|Instagram|MicroMessenger|musical_ly/i.test(ua);
+      if (isInApp) {
+        const inAppBanner = document.getElementById("inapp-browser-banner");
+        if (inAppBanner) inAppBanner.style.display = "flex";
+      }
+    })();
+
+    // Listen for Chrome Android / Pixel PWA install availability
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      window.deferredInstallPrompt = e;
+      console.log("EchoShadow: Chrome Android install prompt is ready.");
+
+      // Display the install banner if not dismissed this session
+      if (!sessionStorage.getItem("pwa_banner_dismissed")) {
+        const banner = document.getElementById("pwa-install-banner");
+        if (banner) banner.style.display = "flex";
+      }
+
+      // Enable direct install button in modal
+      const modalInstallBtn = document.getElementById("modal-direct-install-btn");
+      if (modalInstallBtn) {
+        modalInstallBtn.style.display = "flex";
+      }
+    });
+
+    window.addEventListener("appinstalled", () => {
+      console.log("EchoShadow PWA installed successfully!");
+      window.deferredInstallPrompt = null;
+      const banner = document.getElementById("pwa-install-banner");
+      if (banner) banner.style.display = "none";
+      alert("🎉 恭喜！EchoShadow 1314 已成功安裝至您的手機主畫面！");
+    });
+
+    // Function to trigger native installation dialog
+    window.triggerPWAInstall = async function() {
+      if (window.deferredInstallPrompt) {
+        window.deferredInstallPrompt.prompt();
+        const { outcome } = await window.deferredInstallPrompt.userChoice;
+        console.log("User install choice outcome:", outcome);
+        if (outcome === "accepted") {
+          const banner = document.getElementById("pwa-install-banner");
+          if (banner) banner.style.display = "none";
+        }
+        window.deferredInstallPrompt = null;
+      } else {
+        // If prompt not yet available, show instructions
+        alert("💡 提示：若未跳出自動安裝視窗，請點擊 Chrome 瀏覽器右上角的三個點選單「⋮」，然後點選「安裝應用程式」或「加到主畫面」即可完成安裝！");
+      }
+    };
+
+    // Attach listeners once DOM is ready
+    document.addEventListener("DOMContentLoaded", () => {
+      const bannerInstallBtn = document.getElementById("pwa-banner-install-btn");
+      if (bannerInstallBtn) {
+        bannerInstallBtn.addEventListener("click", window.triggerPWAInstall);
+      }
+
+      const bannerDismissBtn = document.getElementById("pwa-banner-dismiss-btn");
+      if (bannerDismissBtn) {
+        bannerDismissBtn.addEventListener("click", () => {
+          const banner = document.getElementById("pwa-install-banner");
+          if (banner) banner.style.display = "none";
+          sessionStorage.setItem("pwa_banner_dismissed", "1");
+        });
+      }
+
+      const modalInstallBtn = document.getElementById("modal-direct-install-btn");
+      if (modalInstallBtn) {
+        modalInstallBtn.addEventListener("click", window.triggerPWAInstall);
+      }
+    });
+
+    // Service Worker Registration
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").then((reg) => {
+          console.log("EchoShadow PWA Service Worker ready with scope:", reg.scope);
         }).catch((err) => {
-          console.warn('Service Worker registration skipped:', err);
+          console.warn("Service Worker registration skipped:", err);
         });
       });
     }

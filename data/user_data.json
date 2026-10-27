@@ -8,12 +8,13 @@
     "favorite": true
   },
   {
-    "id": "p_1793082566976",
+    "id": "p_1793084755662",
     "type": "phrase",
     "text": "Can I answer in a simple way",
     "translation": "「Can I answer in a simple way」（道地美式日常口語）",
     "sentence": "Whenever things get tough, I just remember to Can I answer in a simple way.",
-    "timestamp": 1793082566976
+    "favorite": false,
+    "timestamp": 1793084755662
   },
   {
     "id": "w_1793082508615",

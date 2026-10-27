@@ -1048,6 +1048,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // ==========================================
+  // MOBILE CONNECT & INSTALL MODAL
+  // ==========================================
+  if (openMobileBtn && mobileModal) {
+    openMobileBtn.addEventListener("click", async () => {
+      let mobileUrl = "https://hunter072088.github.io/shadowing/";
+      if (!window.location.hostname.endsWith("github.io")) {
+        try {
+          const netInfo = await API.getNetworkIp();
+          mobileUrl = netInfo && netInfo.mobileUrl ? netInfo.mobileUrl : window.location.href;
+        } catch (e) {
+          mobileUrl = window.location.href;
+        }
+      }
+      if (mobileQrArea && typeof createQRCodeSVG === "function") {
+        mobileQrArea.innerHTML = createQRCodeSVG(mobileUrl, 180);
+      }
+      mobileModal.classList.add("open");
+    });
+  }
+
+  if (closeMobileBtn && mobileModal) {
+    closeMobileBtn.addEventListener("click", () => {
+      mobileModal.classList.remove("open");
+    });
+  }
+
+  if (ackMobileBtn && mobileModal) {
+    ackMobileBtn.addEventListener("click", () => {
+      mobileModal.classList.remove("open");
+    });
+  }
+
+
   // Global Keyboard Shortcuts
   document.addEventListener("keydown", (e) => {
     if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
