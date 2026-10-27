@@ -7,21 +7,72 @@ const API = {
   baseUrl: "",
 
   async generate(type, query, apiKey = "") {
-    try {
-      const res = await fetch(`${this.baseUrl}/api/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, query, apiKey })
-      });
-      if (res.ok) {
-        return await res.json();
+    // If on GitHub Pages or API key is provided, try direct Gemini API
+    if (apiKey) {
+      try {
+        const directRes = await this.callGeminiDirect(type, query, apiKey);
+        if (directRes) return directRes;
+      } catch (err) {
+        console.warn("Direct Gemini API error, falling back:", err);
       }
-    } catch (e) {
-      console.warn("Backend API unavailable, using client-side smart generation engine:", e);
     }
 
-    // Client-side fallback if server offline or network unavailable
+    // Only try local backend if NOT on static github.io
+    const isGitHubPages = window.location.hostname.endsWith("github.io");
+    if (!isGitHubPages) {
+      try {
+        const res = await fetch(`${this.baseUrl}/api/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type, query, apiKey })
+        });
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (e) {
+        console.warn("Backend API unavailable, using client-side smart generation engine:", e);
+      }
+    }
+
+    // Client-side fallback: works 100% on GitHub Pages with zero latency
     return this.clientFallback(type, query);
+  },
+
+  async callGeminiDirect(type, query, apiKey) {
+    let prompt = "";
+    if (type === "phrase") {
+      prompt = `你是一位專門設計「YouTube English Podcast 1314」風格的專業美式英語口說教練。用戶想要學習英語片語：「${query}」。請為此片語生成最道地、自然、適合跟讀的學習資料。請以繁體中文回答，並輸出純 JSON 格式：{"text":"${query}","type":"phrase","translation":"繁中翻譯","explanation":"Podcast 1314 風格的語境剖析","pronunciation":"發音與連音口訣","sentence":"Podcast風格生活化實用例句","sentence_translation":"例句繁中翻譯","dialogue":[{"speaker":"A","line":"A的自然對話","translation":"A的翻譯"},{"speaker":"B","line":"B的真實回覆","translation":"B的翻譯"}],"shadowing_tips":"跟讀建議"}`;
+    } else if (type === "word") {
+      prompt = `你是一位專業美語口說教學專家。用戶想要學習單字：「${query}」。用戶明確需求：【請簡單造句】，必須是日常生活高頻、口語化、簡單好讀、非常適合跟讀的句子（6-12字），不要複雜長難句！請以繁體中文回答，並輸出純 JSON 格式：{"text":"${query}","type":"word","pos":"詞性","phonetic":"KK音標或IPA","translation":"繁中解釋","sentence":"生活日常超實用的簡單造句","sentence_translation":"簡單造句繁中翻譯","alternative_sentence":"另一個簡單例句","alternative_translation":"另一個例句翻譯","shadowing_tips":"口說發音重點"}`;
+    } else {
+      return null;
+    }
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        responseMimeType: "application/json"
+      }
+    };
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const rawText = data.candidates[0].content.parts[0].text;
+      let clean = rawText.trim();
+      if (clean.startsWith("```json")) clean = clean.slice(7);
+      else if (clean.startsWith("```")) clean = clean.slice(3);
+      if (clean.endsWith("```")) clean = clean.slice(0, -3);
+      return JSON.parse(clean.trim());
+    }
+    return null;
   },
 
   clientFallback(type, query) {

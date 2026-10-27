@@ -27,7 +27,7 @@ if sys.platform == "win32":
 
 PORT = 8765
 BASE_DIR = Path(__file__).resolve().parent
-STATIC_DIR = BASE_DIR / "static"
+STATIC_DIR = BASE_DIR
 DATA_DIR = BASE_DIR / "data"
 
 DATA_DIR.mkdir(exist_ok=True)
