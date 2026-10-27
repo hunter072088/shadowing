@@ -1,0 +1,42 @@
+[
+  {
+    "id": "p_1793082566976",
+    "type": "phrase",
+    "text": "Can I answer in a simple way",
+    "translation": "「Can I answer in a simple way」（道地美式日常口語）",
+    "sentence": "Whenever things get tough, I just remember to Can I answer in a simple way.",
+    "timestamp": 1793082566976
+  },
+  {
+    "id": "w_1793082508615",
+    "type": "word",
+    "text": "exhausted",
+    "translation": "筋疲力盡的、累癱的",
+    "sentence": "I am completely exhausted after that run.",
+    "timestamp": 1793082508615
+  },
+  {
+    "id": "w_1793082503352",
+    "type": "word",
+    "text": "chill",
+    "translation": "放鬆的、冷靜的、悠閒放空",
+    "sentence": "Let's just stay home and chill tonight.",
+    "timestamp": 1793082503352
+  },
+  {
+    "id": "w_1793082450735",
+    "type": "word",
+    "text": "overwhelmed",
+    "translation": "不知所措的、負擔過重喘不過氣",
+    "sentence": "I feel overwhelmed by all this work.",
+    "timestamp": 1793082450735
+  },
+  {
+    "id": "w_1793082444553",
+    "type": "word",
+    "text": "procrastinate",
+    "translation": "拖延、拖拖拉拉",
+    "sentence": "Don't procrastinate on your homework.",
+    "timestamp": 1793082444554
+  }
+]

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EchoShadow 1314 — 英文口說 Shadowing 智能跟讀學習系統</title>
+  <meta name="description" content="專為英文跟讀法（Shadowing）打造的智能學習系統。支援片語解析造句、單字簡單造句聽播、YouTube English Podcast 1314 精選道地片語庫與跟讀錄音對比。">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎧</text></svg>">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon-wrapper">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <h1>EchoShadow <span class="brand-tag">1314 Edition</span></h1>
+        <div class="brand-subtitle">英文口說跟讀法（Shadowing）智能教練</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" aria-label="Main Navigation">
+      <button class="nav-tab active" data-tab="phrase" id="tab-btn-phrase">
+        <span>🎧</span> 片語跟讀練習
+      </button>
+      <button class="nav-tab" data-tab="word" id="tab-btn-word">
+        <span>🔤</span> 單字簡單造句
+      </button>
+      <button class="nav-tab" data-tab="podcast" id="tab-btn-podcast">
+        <span>📻</span> Podcast 1314 精選庫
+      </button>
+      <button class="nav-tab" data-tab="history" id="tab-btn-history">
+        <span>📚</span> 我的生詞複習本
+      </button>
+    </nav>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="icon-btn" id="open-settings-btn" title="語音與跟讀設定" aria-label="設定">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+
+    <!-- ==========================================
+         TAB 1: PHRASE SHADOWING (需求 1)
+         ========================================== -->
+    <section class="tab-pane active" id="tab-phrase">
+      <div class="section-banner">
+        <h2 class="banner-title">🎧 片語跟讀與情境造句 (Phrase Shadowing)</h2>
+        <p class="banner-desc">輸入任何你想學習的英文片語，AI 即時剖析語境、生成 YouTube English Podcast 1314 風格的道地生活例句與雙人對話，並啟動反覆聽播跟讀循環！</p>
+      </div>
+
+      <!-- Input Card -->
+      <div class="input-card">
+        <div class="input-row">
+          <input type="text" class="text-input" id="phrase-input" placeholder="輸入你想學習的片語，例如：call it a day, cut corners, play it by ear..." autofocus>
+          <button class="primary-btn" id="phrase-gen-btn">
+            <span>✨</span> 開始 AI 解析與造句
+          </button>
+        </div>
+        <div class="quick-tags-wrapper">
+          <span class="quick-label">熱門推薦：</span>
+          <button class="quick-tag" data-text="call it a day">call it a day (收工了)</button>
+          <button class="quick-tag" data-text="hit the nail on the head">hit the nail on the head (一針見血)</button>
+          <button class="quick-tag" data-text="cut corners">cut corners (抄捷徑)</button>
+          <button class="quick-tag" data-text="under the weather">under the weather (身體微恙)</button>
+          <button class="quick-tag" data-text="it slipped my mind">it slipped my mind (我忘了)</button>
+          <button class="quick-tag" data-text="play it by ear">play it by ear (見機行事)</button>
+          <button class="quick-tag" data-text="sleep on it">sleep on it (考慮一晚)</button>
+          <button class="quick-tag" data-text="bite the bullet">bite the bullet (咬緊牙關)</button>
+        </div>
+      </div>
+
+      <!-- Phrase Result Workspace -->
+      <div class="result-card" id="phrase-result-area">
+        <div class="result-badge-bar">
+          <span class="type-badge">美式口語片語</span>
+          <span class="card-level-badge level-b1">Podcast 1314 推薦</span>
+        </div>
+
+        <div class="result-title-row">
+          <div class="result-title" id="res-phrase-title">call it a day</div>
+          <div class="result-translation" id="res-phrase-translation">今天就到此為止吧 / 收工了</div>
+        </div>
+
+        <!-- Explanation -->
+        <div class="result-explanation-box">
+          <p><strong>💡 語境剖析：</strong><span id="res-phrase-explanation"></span></p>
+          <p style="margin-top: 0.4rem;"><strong>🗣️ 發音與連音提示：</strong><span id="res-phrase-pronunciation"></span></p>
+        </div>
+
+        <!-- Practice Sentence Showcase (With Karaoke) -->
+        <div class="sentence-showcase-box">
+          <div class="sentence-header">
+            <span>🎙️ 道地日常生活例句 (跟讀核心句)</span>
+            <span style="font-size: 0.72rem; color: #94a3b8;">反覆跟讀中將即時高亮當前單字</span>
+          </div>
+          <div class="sentence-text" id="res-phrase-sentence"></div>
+          <div class="sentence-trans" id="res-phrase-sent-trans"></div>
+        </div>
+
+        <!-- Dialogue Section -->
+        <div class="dialogue-section">
+          <h3>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            Podcast 1314 實境日常短對話 (A & B 情境模擬)
+          </h3>
+          <div class="dialogue-bubbles" id="res-phrase-dialogue"></div>
+        </div>
+
+        <!-- Shadowing Tips Box -->
+        <div class="tips-box" id="res-phrase-tips-box">
+          <div class="tips-icon">🎯</div>
+          <div>
+            <strong>跟讀訣竅（Shadowing Tips）：</strong>
+            <span id="res-phrase-tips"></span>
+          </div>
+        </div>
+
+        <!-- Practice Actions -->
+        <div class="practice-actions-row">
+          <button class="action-pill-btn primary" id="play-sentence-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            🎧 跟讀主要例句
+          </button>
+          <button class="action-pill-btn" id="play-phrase-only-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            僅聽片語本體
+          </button>
+          <button class="action-pill-btn" id="play-dialogue-all-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            聽雙人完整對話
+          </button>
+        </div>
+
+        <!-- Voice Recorder & Pronunciation Comparison -->
+        <div class="voice-compare-card">
+          <div class="voice-compare-header">
+            <span>🎙️ 口說跟讀錄音與自我對比 (Audio Echo)</span>
+          </div>
+          <div class="voice-compare-controls">
+            <button class="mic-btn" id="mic-record-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+              錄製我的跟讀
+            </button>
+            <button class="action-pill-btn" id="play-my-voice-btn" style="display: none;">
+              ▶ 聽我剛剛說的
+            </button>
+            <button class="action-pill-btn" id="play-native-again-btn" style="display: none;">
+              🔊 對比聽原音
+            </button>
+            <span class="record-feedback-text" id="record-status-text">點擊按鈕錄下你模仿的發音，與母語音檔對比音調與語氣！</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 2: WORD SHADOWING (需求 2)
+         ========================================== -->
+    <section class="tab-pane" id="tab-word">
+      <div class="section-banner">
+        <h2 class="banner-title">🔤 單字簡單造句與跟讀 (Word Shadowing)</h2>
+        <p class="banner-desc">輸入任何想學習的單字，AI 會為你進行【簡單造句】——拒絕冗長難句，專注於日常生活高頻、好懂、好開口的精煉短句，並透過重複聽播牢固記憶！</p>
+      </div>
+
+      <!-- Input Card -->
+      <div class="input-card">
+        <div class="input-row">
+          <input type="text" class="text-input" id="word-input" placeholder="輸入你想學習的單字，例如：overwhelmed, procrastinate, chill, awkward...">
+          <button class="primary-btn" id="word-gen-btn">
+            <span>⚡</span> AI 簡單造句 & 重複聽播
+          </button>
+        </div>
+        <div class="quick-tags-wrapper">
+          <span class="quick-label">熱門單字：</span>
+          <button class="quick-tag quick-word-tag" data-text="procrastinate">procrastinate (拖延)</button>
+          <button class="quick-tag quick-word-tag" data-text="overwhelmed">overwhelmed (負荷過重)</button>
+          <button class="quick-tag quick-word-tag" data-text="awkward">awkward (尷尬的)</button>
+          <button class="quick-tag quick-word-tag" data-text="spontaneous">spontaneous (隨性說走就走)</button>
+          <button class="quick-tag quick-word-tag" data-text="exhausted">exhausted (筋疲力盡)</button>
+          <button class="quick-tag quick-word-tag" data-text="chill">chill (放鬆放空)</button>
+          <button class="quick-tag quick-word-tag" data-text="hesitate">hesitate (猶豫)</button>
+          <button class="quick-tag quick-word-tag" data-text="reliable">reliable (可靠的)</button>
+        </div>
+      </div>
+
+      <!-- Word Result Workspace -->
+      <div class="result-card" id="word-result-area">
+        <div class="result-badge-bar">
+          <span class="type-badge" id="res-word-pos">adj. 形容詞</span>
+          <span class="card-level-badge level-a2">日常生活精選</span>
+        </div>
+
+        <div class="result-title-row">
+          <div class="result-title" id="res-word-title">procrastinate</div>
+          <div class="result-phonetic" id="res-word-phonetic">/prəˈkræs.tə.neɪt/</div>
+          <div class="result-translation" id="res-word-translation">拖延、拖拖拉拉</div>
+        </div>
+
+        <!-- Practice Simple Sentence Showcase -->
+        <div class="sentence-showcase-box">
+          <div class="sentence-header">
+            <span>✨ AI 精選【簡單生活例句】（最適合跟讀口說）</span>
+            <span style="font-size: 0.72rem; color: #34d399;">簡短有力 • 容易朗朗上口</span>
+          </div>
+          <div class="sentence-text" id="res-word-sentence"></div>
+          <div class="sentence-trans" id="res-word-sent-trans"></div>
+        </div>
+
+        <!-- Alternative Sentence Box -->
+        <div class="sentence-showcase-box" id="res-word-alt-box" style="margin-top: 1rem; background: rgba(15, 23, 42, 0.6);">
+          <div class="sentence-header">
+            <span>💡 備用日常簡例</span>
+            <button class="mini-play-btn" id="play-alt-sent-btn">跟讀此句</button>
+          </div>
+          <div class="sentence-text" id="res-word-alt-sent" style="font-size: 1.15rem;"></div>
+          <div class="sentence-trans" id="res-word-alt-trans"></div>
+        </div>
+
+        <!-- Shadowing Tips Box -->
+        <div class="tips-box" id="res-word-tips-box">
+          <div class="tips-icon">🎯</div>
+          <div>
+            <strong>口說跟讀重點：</strong>
+            <span id="res-word-tips"></span>
+          </div>
+        </div>
+
+        <!-- Practice Actions -->
+        <div class="practice-actions-row">
+          <button class="action-pill-btn primary" id="play-word-sent-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            🎧 跟讀簡單例句
+          </button>
+          <button class="action-pill-btn" id="play-word-only-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            僅聽單字發音
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 3: PODCAST 1314 PHRASES (需求 3)
+         ========================================== -->
+    <section class="tab-pane" id="tab-podcast">
+      <div class="section-banner">
+        <h2 class="banner-title">📻 YouTube「English Podcast 1314」精選片語庫</h2>
+        <p class="banner-desc">精選 YouTube 頻道「Podcast學英語1314」最受歡迎的高頻美語口語、地道成語與生活反應用語。點擊任何卡片即可一鍵載入跟讀機，隨時開始口說磨耳朵！</p>
+      </div>
+
+      <!-- Filter & Search Toolbar -->
+      <div class="filter-toolbar">
+        <div class="filter-row">
+          <span class="filter-label">情境分類：</span>
+          <div class="pill-group">
+            <button class="filter-pill category-pill active" data-category="all">全部情境</button>
+            <button class="filter-pill category-pill" data-category="職場與工作">💼 職場與工作</button>
+            <button class="filter-pill category-pill" data-category="朋友社交">🍕 朋友社交</button>
+            <button class="filter-pill category-pill" data-category="日常生活">☕ 日常生活</button>
+            <button class="filter-pill category-pill" data-category="情緒與感覺">💭 情緒與感覺</button>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <span class="filter-label">聽力難度：</span>
+          <div class="pill-group">
+            <button class="filter-pill level-pill active" data-level="all">全部難度</button>
+            <button class="filter-pill level-pill" data-level="A2">A2 基礎慢速</button>
+            <button class="filter-pill level-pill" data-level="B1">B1 中階日常</button>
+            <button class="filter-pill level-pill" data-level="B2">B2 道地自然</button>
+          </div>
+        </div>
+
+        <div class="search-and-refresh">
+          <div class="search-input-wrap">
+            <input type="text" id="podcast-search" placeholder="🔍 搜尋英文片語、中文意義或關鍵字...">
+          </div>
+          <button class="action-pill-btn" id="refresh-recommend-btn" title="隨機推薦一批片語">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+            🎲 換一批推薦
+          </button>
+        </div>
+      </div>
+
+      <!-- Cards Grid -->
+      <div class="podcast-grid" id="podcast-cards-grid"></div>
+    </section>
+
+    <!-- ==========================================
+         TAB 4: HISTORY / REVIEW
+         ========================================== -->
+    <section class="tab-pane" id="tab-history">
+      <div class="section-banner">
+        <div class="history-header">
+          <div>
+            <h2 class="banner-title">📚 我的生詞與跟讀記錄本</h2>
+            <p class="banner-desc">自動保存你所查詢與練習過的所有片語與單字，隨時溫故知新，建立牢固的英文口腔肌肉記憶。</p>
+          </div>
+          <button class="action-pill-btn" id="clear-history-btn">
+            清空所有記錄
+          </button>
+        </div>
+      </div>
+
+      <div class="history-list" id="history-list"></div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       DOCKED SHADOWING WORKBENCH (BOTTOM PLAYER)
+       ========================================== -->
+  <footer class="docked-player" id="docked-player" role="region" aria-label="跟讀播放控制台">
+    <!-- Left: Wave & Status -->
+    <div class="player-left">
+      <div class="player-wave-wrap">
+        <canvas id="audio-wave-canvas" width="140" height="38"></canvas>
+      </div>
+      <div class="player-info-meta">
+        <span class="player-status-badge status-idle" id="player-mode-indicator">準備就緒</span>
+        <div class="player-current-text" id="player-current-text">選擇片語或單字開始跟讀</div>
+      </div>
+    </div>
+
+    <!-- Center: Main Controls & Loop Countdown -->
+    <div class="player-center">
+      <div class="player-controls-row">
+        <button class="control-icon-btn" id="player-stop-btn" title="停止播放 (Esc)" aria-label="停止">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
+        </button>
+
+        <button class="play-main-btn" id="player-play-btn" title="播放 / 暫停 (空白鍵 Space)" aria-label="播放">
+          <svg class="play-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+            <polygon points="6 4 20 12 6 20 6 4"></polygon>
+          </svg>
+          <svg class="pause-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" style="display: none;">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+        </button>
+
+        <div class="loop-status-pill" id="player-loop-status">
+          <span class="pulse-dot"></span> 第 <strong>1</strong> / 3 遍跟讀
+        </div>
+      </div>
+
+      <div class="player-interval-countdown" id="player-countdown">
+        🗣️ <strong>跟讀時間：</strong> 請大聲跟讀模仿 (2.0s)
+      </div>
+    </div>
+
+    <!-- Right: Speed, Repeats, and Interval Delays -->
+    <div class="player-right">
+      <div class="player-select-group">
+        <label for="player-speed-select">語速：</label>
+        <select class="player-select" id="player-speed-select">
+          <option value="0.75">0.75x 慢速</option>
+          <option value="0.9" selected>0.9x 穩健</option>
+          <option value="1.0">1.0x 標準</option>
+          <option value="1.15">1.15x 流利</option>
+        </select>
+      </div>
+
+      <div class="player-select-group">
+        <label for="player-repeat-select">循環：</label>
+        <select class="player-select" id="player-repeat-select">
+          <option value="1">1 遍 (單次)</option>
+          <option value="3" selected>3 遍 (標準)</option>
+          <option value="5">5 遍 (深入)</option>
+          <option value="10">10 遍 (挑戰)</option>
+          <option value="inf">無限循環</option>
+        </select>
+      </div>
+
+      <div class="player-select-group">
+        <label for="player-interval-select">跟讀停頓：</label>
+        <select class="player-select" id="player-interval-select">
+          <option value="1.0">1.0 秒</option>
+          <option value="2.0" selected>2.0 秒 (推薦)</option>
+          <option value="3.0">3.0 秒</option>
+          <option value="4.0">4.0 秒 (長句)</option>
+        </select>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================
+       SETTINGS MODAL
+       ========================================== -->
+  <div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="settings-modal-title">⚙️ 跟讀與發音參數設定</h3>
+        <button class="modal-close-btn" id="close-settings-btn" aria-label="關閉">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label for="settings-voice-select">🎙️ 英語母語發音聲音 (TTS Voice)：</label>
+        <select class="form-control" id="settings-voice-select"></select>
+        <small>支援系統內建 Microsoft Jenny, Google US English 等高品質英語聲音。</small>
+        <div style="margin-top: 0.5rem;">
+          <button class="mini-play-btn" id="test-voice-btn" type="button">試聽當前聲音發音</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="settings-rate-input">⚡ 預設語速：</label>
+        <select class="form-control" id="settings-rate-input">
+          <option value="0.75">0.75x (慢速磨耳朵)</option>
+          <option value="0.85">0.85x (微慢清晰)</option>
+          <option value="0.9" selected>0.9x (新手跟讀推薦)</option>
+          <option value="1.0">1.0x (標準美語語速)</option>
+          <option value="1.15">1.15x (快速流利進階)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="settings-interval-input">⏳ 每次跟讀之間的停頓時間：</label>
+        <select class="form-control" id="settings-interval-input">
+          <option value="1.0">1.0 秒 (緊湊跟讀)</option>
+          <option value="2.0" selected>2.0 秒 (標準時間)</option>
+          <option value="3.0">3.0 秒 (充裕時間)</option>
+          <option value="4.0">4.0 秒 (完整長句複述)</option>
+        </select>
+        <small>此停頓時間是留給你的口說練習時間，在下次音檔播送前重複說出。</small>
+      </div>
+
+      <div class="form-group">
+        <label for="settings-repeat-input">🔁 預設循環聽播次數：</label>
+        <select class="form-control" id="settings-repeat-input">
+          <option value="1">1 遍</option>
+          <option value="3" selected>3 遍 (推薦黃金次數)</option>
+          <option value="5">5 遍 (強化肌肉記憶)</option>
+          <option value="10">10 遍</option>
+          <option value="inf">無限循環播放</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="settings-api-key">🔑 Google Gemini API Key (可選)：</label>
+        <input type="password" class="form-control" id="settings-api-key" placeholder="AIzaSy...">
+        <small>若未填寫，系統將自動啟動內建的智能生成引擎與離線庫，所有功能依然100%完全可用！</small>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancel-settings-btn" type="button" onclick="document.getElementById('settings-modal').classList.remove('open')">取消</button>
+        <button class="primary-btn" id="save-settings-btn" type="button">儲存設定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/database.js"></script>
+  <script src="js/speech.js"></script>
+  <script src="js/recorder.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

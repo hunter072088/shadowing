@@ -1,0 +1,25 @@
+{
+  "name": "EchoShadow 1314 — 英文口說跟讀學習系統",
+  "short_name": "EchoShadow",
+  "description": "YouTube English Podcast 1314 風格的英文口說跟讀法（Shadowing）智能教練。支援片語解析、單字簡單造句與重複聽播。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#090d16",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

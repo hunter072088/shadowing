@@ -1,0 +1,384 @@
+{
+  "phrases": [
+    {
+      "id": "p1",
+      "text": "call it a day",
+      "translation": "今天就到此為止吧 / 收工了",
+      "category": "職場與工作",
+      "level": "A2",
+      "tags": [
+        "高頻必學",
+        "Podcast熱門",
+        "工作收尾"
+      ],
+      "explanation": "「English Podcast 1314」最經典的下班用語！當你和同事或朋友已經努力了一整天，覺得進度差不多了，想要結束工作回家休息時，就會說這句話。口氣輕鬆且非常自然。",
+      "pronunciation": "連音技巧：call it 連讀為 /kɔː-lɪt/，最後的 a day 輕快帶過。",
+      "sentence": "We've accomplished a lot today. Let's call it a day and grab some dinner.",
+      "sentence_translation": "我們今天完成了不少事情。今天就先收工，一起去吃晚餐吧！",
+      "dialogue": [
+        {
+          "speaker": "A",
+          "line": "We've been staring at this spreadsheet for four hours straight.",
+          "translation": "我們已經盯著這個報表整整四個小時了。"
+        },
+        {
+          "speaker": "B",
+          "line": "Yeah, my brain is completely fried. Let's call it a day.",
+          "translation": "真的，我的腦袋已經完全燒焦了。今天就收工吧！"
+        }
+      ],
+      "shadowing_tips": "重音落在「day」上，語調在句末溫和下沉，傳達放鬆收尾的感覺。"
+    },
+    {
+      "id": "p2",
+      "text": "hit the nail on the head",
+      "translation": "一針見血 / 說得完全正確",
+      "category": "朋友社交",
+      "level": "B1",
+      "tags": [
+        "成語",
+        "表達贊同",
+        "讚美"
+      ],
+      "explanation": "字面意思是「把釘子敲得正中靶心」，在口語中用來誇獎對方的分析精闢、完全說中核心要點。在 Podcast 中常用於主持人強烈認同來賓的論點時。",
+      "pronunciation": "注意 nail on 連讀成 /neɪ-lɒn/，head 短促有力。",
+      "sentence": "You hit the nail on the head when you mentioned team communication is our biggest hurdle.",
+      "sentence_translation": "當你提到團隊溝通是我們最大的瓶頸時，你完全說中要害了。",
+      "dialogue": [
+        {
+          "speaker": "A",
+          "line": "I think people buy this product not for its features, but for the lifestyle it represents.",
+          "translation": "我覺得大家買這個產品不是為了功能，而是為了它所代表的生活風格。"
+        },
+        {
+          "speaker": "B",
+          "line": "Exactly! You hit the nail on the head.",
+          "translation": "沒錯！你真是一針見血。"
+        }
+      ],
+      "shadowing_tips": "「hit」和「head」是主要重音，中間的 the nail on the 節奏要輕盈快速。"
+    },
+    {
+      "id": "p3",
+      "text": "cut corners",
+      "translation": "抄捷徑 / 偷工減料 / 圖省事",
+      "category": "職場與工作",
+      "level": "B1",
+      "tags": [
+        "工作態度",
+        "警示",
+        "慣用語"
+      ],
+      "explanation": "指為了省錢或省時間而採取投機取巧的方法，通常帶有負面後果。Podcast 談到品質堅持或創業教訓時經常出現。",
+      "pronunciation": "cut 的 /t/ 音在 corners 前常做停頓（Glottal stop），聽起來更道地。",
+      "sentence": "If you cut corners on product safety, you will definitely pay the price later.",
+      "sentence_translation": "如果你在產品安全上偷工減料，日後一定會付出代價。",
+      "dialogue": [
+        {
+          "speaker": "A",
+          "line": "Can we skip the final QA testing stage to launch ahead of schedule?",
+          "translation": "我們可以跳過最後的品管測試階段，好提前上線嗎？"
+        },
+        {
+          "speaker": "B",
+          "line": "No way. Cutting corners will only lead to major customer complaints.",
+          "translation": "門都沒有。偷工減料只會招來客戶的大量投訴。"
+        }
+      ],
+      "shadowing_tips": "「corners」第一音節強烈重音，尾音 /z/ 微微帶出。"
+    },
+    {
+      "id": "p4",
+      "text": "under the weather",
+      "translation": "身體微恙 / 不太舒服 / 提不起勁",
+      "category": "情緒與感覺",
+      "level": "A2",
+      "tags": [
+        "日常健康",
+        "社交問候",
+        "請假理由"
+      ],
+      "explanation": "不是生大病住院，而是類似輕微感冒、頭痛或宿醉那種「身體懨懨的、不在最佳狀態」。非常溫和且禮貌的表達方式。",
+      "pronunciation": "the weather 中的 /ð/ 咬舌輕輕拂過即可，不要刻意用力。",
+      "sentence": "I'm feeling a bit under the weather today, so I think I'll skip the party.",
+      "sentence_translation": "我今天身體有點不太舒服，所以我想我會缺席聚會。",
+      "dialogue": [
+        {
+          "speaker": "A",
+          "line": "You look a little pale this morning. Everything okay?",
+          "translation": "你今天早上看起來有點臉色蒼白，還好嗎？"
+        },
+        {
+          "speaker": "B",
+          "line": "Just feeling a bit under the weather. A hot tea should fix me up.",
+          "translation": "只是有點不太舒服。一杯熱茶應該就能讓我恢復活力。"
+        }
+      ],
+      "shadowing_tips": "「under」和「weather」形成一高一低的旋律感，聽起來充滿柔和的日常口語感。"
+    },
+    {
+      "id": "p5",
+      "text": "it slipped my mind",
+      "translation": "我一時想不起來 / 我完全忘了",
+      "category": "日常生活",
+      "level": "A2",
+      "tags": [
+        "道歉",
+        "記憶力",
+        "高頻必備"
+      ],
+      "explanation": "比起生硬的「I forgot」，母語人士更喜歡用這句表達「哎呀，事情從我腦子裡溜走了」。給人的感覺是無心之過，非常自然。",
+      "pronunciation": "slipped 的 /t/ 音自然融入 my，唸成 /slɪp-maɪ/。",
+      "sentence": "I promised to buy some milk on my way home, but it completely slipped my mind.",
+      "sentence_translation": "我答應回家路上買牛奶的，但我完全忘得一乾二淨了。",
+      "dialogue": [
+        {
+          "speaker": "A",
+          "line": "Did you send the updated invoice to Marcus?",
+          "translation": "你把更新後的發票寄給馬克思了嗎？"
+        },
+        {
+          "speaker": "B",
+          "line": "Oh shoot, it completely slipped my mind! Doing it right this second.",
+          "translation": "哎呀糟糕，我完全忘了！我現在立刻用。"
+        }
+      ],
+      "shadowing_tips": "「slipped」與「mind」是重讀字，說的時候可以帶一點抱歉的生動語氣。"
+    },
+    {
+      "id": "p6",
+      "text": "play it by ear",
+      "translation": "見機行事 / 看情況再說 / 不預設立場",
+      "category": "日常生活",
+      "level": "B1",
+      "tags": [
+        "聚會相約",
+        "彈性安排",
+        "Podcast愛用"
+      ],
+      "explanation": "源自不看樂譜、單憑聽力彈琴的音樂人。在日常生活中，指沒有嚴格行程計畫，到時候看當下氣氛、天氣或狀態再來決定。",
+      "pronunciation": "play it 連讀為 /pleɪ-jɪt/，by ear 連讀為 /baɪ-jɪər/。",
+      "sentence": "We don't know when the meeting will wrap up, so let's just play it by ear tonight.",
+      "sentence_translation": "我們不知道會議幾點會結束，所以今晚我們就看情況再說吧。",
+      "dialogue": [
+        {
+          "speaker": "A",
+          "line": "Should we book the outdoor patio for lunch tomorrow?",
+          "translation": "我們要預訂明天戶外露台吃午餐嗎？"
+        },
+        {
+          "speaker": "B",
+          "line": "The forecast says it might rain. Let's just play it by ear.",
+          "translation": "天氣預報說可能會下雨。我們明天看情況再說吧。"
+        }
+      ],
+      "shadowing_tips": "整個短語節奏很流暢，不要在 it 或 by 中間斷開。"
+    },
+    {
+      "id": "p7",
+      "text": "sleep on it",
+      "translation": "考慮一晚 / 明天再做決定",
+      "category": "日常生活",
+      "level": "A2",
+      "tags": [
+        "深思熟慮",
+        "建議",
+        "生活智慧"
+      ],
+      "explanation": "面對重大採購、工作轉換或複雜合約時，先不要衝動做決定，睡一覺讓頭腦清醒再來思考。1314 Podcast 的心理與生活主題常談到此句。",
+      "pronunciation": "sleep on it 三個字連成一氣：/sliː-pɒ-nɪt/。",
+      "sentence": "Don't make any rash choices tonight. Sleep on it and give me your answer tomorrow.",
+      "sentence_translation": "今晚別做任何衝動的選擇。好好睡一覺想清楚，明天再給我答覆。",
+      "dialogue": [
+        {
+          "speaker": "A",
+          "line": "The dealership offered me a huge discount if I sign the contract right now.",
+          "translation": "車行說如果我現在馬上簽約，就給我超大折扣。"
+        },
+        {
+          "speaker": "B",
+          "line": "Don't fall for high-pressure sales tactics. Sleep on it first.",
+          "translation": "別中強迫推銷的計。先考慮一晚再說。"
+        }
+      ],
+      "shadowing_tips": "「Sleep」要長音 /sliːp/，後面 on it 輕輕滑過去。"
+    },
+    {
+      "id": "p8",
+      "text": "ring a bell",
+      "translation": "聽起來有點耳熟 / 勾起些許記憶",
+      "category": "朋友社交",
+      "level": "B1",
+      "tags": [
+        "回憶",
+        "熟識度",
+        "聊天日常"
+      ],
+      "explanation": "某個名字、旋律或地點讓你覺得彷彿在哪聽過，但又不能100%確定。口語常用在問句：Does that ring a bell?（你有印象嗎？）",
+      "pronunciation": "ring a 連讀 /rɪŋ-ə/，bell 舌尖頂在上齒齦發出清晰的 dark L 音。",
+      "sentence": "Her name rings a bell, but I honestly can't remember where we met before.",
+      "sentence_translation": "她的名字聽起來挺耳熟的，但我實在記不起我們之前在哪裡見過。",
+      "dialogue": [
+        {
+          "speaker": "A",
+          "line": "Have you ever heard of a podcast called 'English 1314'?",
+          "translation": "你有聽過一個叫做 'English 1314' 的 Podcast 嗎？"
+        },
+        {
+          "speaker": "B",
+          "line": "Yeah, that definitely rings a bell! My friends recommend it all the time.",
+          "translation": "有耶，我絕對有印象！我朋友常常跟我推薦。"
+        }
+      ],
+      "shadowing_tips": "「bell」的結尾音要飽滿，問句時語調要微微上揚。"
+    },
+    {
+      "id": "p9",
+      "text": "bite the bullet",
+      "translation": "咬緊牙關 / 硬著頭皮去面對",
+      "category": "情緒與感覺",
+      "level": "B2",
+      "tags": [
+        "勇氣",
+        "困難抉擇",
+        "Podcast金句"
+      ],
+      "explanation": "以前戰場沒有麻醉藥，傷兵必須咬著子彈忍受手術。現在用來形容終於下定決心去面對一件痛苦但不可避免的事情。",
+      "pronunciation": "bite the bullet 重音在 bite 和 bullet 的首音節。",
+      "sentence": "I hated going to the dentist, but I had to bite the bullet and get my tooth pulled.",
+      "sentence_translation": "我討厭看牙醫，但我不得不咬緊牙關把那顆蛀牙拔掉。",
+      "dialogue": [
+        {
+          "speaker": "A",
+          "line": "You've been putting off that uncomfortable conversation with your landlord for weeks.",
+          "translation": "你已經拖延跟房東攤牌好幾個星期了。"
+        },
+        {
+          "speaker": "B",
+          "line": "I know. It's time to bite the bullet and get it over with.",
+          "translation": "我知道。是時候硬著頭皮把這件事解決掉了。"
+        }
+      ],
+      "shadowing_tips": "「bite」要有決心感的爆破音，傳達出毅然決然的心情。"
+    },
+    {
+      "id": "p10",
+      "text": "no biggie",
+      "translation": "沒什麼大不了 / 小事一樁 / 不用客氣",
+      "category": "朋友社交",
+      "level": "A2",
+      "tags": [
+        "口語短語",
+        "輕鬆隨和",
+        "超高頻"
+      ],
+      "explanation": "「no big deal」極為常見的口語簡化版本！好朋友之間彼此幫忙、道歉或道謝時，說這句顯得非常親切友善。",
+      "pronunciation": "biggie 發音為 /ˈbɪɡ.i/，尾音輕快上翹。",
+      "sentence": "Thanks a ton for covering my shift yesterday! — No biggie, happy to help anytime.",
+      "sentence_translation": "昨天超感謝你幫我代班！—— 小事一樁，隨時樂意幫忙！",
+      "dialogue": [
+        {
+          "speaker": "A",
+          "line": "I'm so sorry I accidentally spilled a drop of coffee on your notebook!",
+          "translation": "超抱歉，我不小心滴了一滴咖啡在你的筆記本上！"
+        },
+        {
+          "speaker": "B",
+          "line": "No biggie at all, it's just rough notes anyway.",
+          "translation": "完全沒關係啦，反正這只是隨手草稿而已。"
+        }
+      ],
+      "shadowing_tips": "說這句話時臉上帶點微笑，語音清脆俐落。"
+    }
+  ],
+  "words": [
+    {
+      "word": "procrastinate",
+      "pos": "v. 動詞",
+      "phonetic": "/prəˈkræs.tə.neɪt/",
+      "translation": "拖延、拖拖拉拉",
+      "sentence": "Don't procrastinate on your homework.",
+      "sentence_translation": "功課不要拖拖拉拉。",
+      "alternative_sentence": "I always procrastinate when I feel stressed.",
+      "alternative_translation": "當我壓力大時，我總是習慣拖延。",
+      "shadowing_tips": "重音在第二音節 cras，練習把音節連貫讀出。"
+    },
+    {
+      "word": "overwhelmed",
+      "pos": "adj. 形容詞",
+      "phonetic": "/ˌoʊ.vɚˈwelmd/",
+      "translation": "不知所措的、負擔過重喘不過氣",
+      "sentence": "I feel overwhelmed by all this work.",
+      "sentence_translation": "面對所有這些工作，我覺得快喘不過氣了。",
+      "alternative_sentence": "Take a deep breath if you feel overwhelmed.",
+      "alternative_translation": "如果你感到負擔太重，就深呼吸一口氣。",
+      "shadowing_tips": "重音在 whelmed，尾音 /md/ 輕收。"
+    },
+    {
+      "word": "awkward",
+      "pos": "adj. 形容詞",
+      "phonetic": "/ˈɑː.kwɚd/",
+      "translation": "尷尬的、彆扭的",
+      "sentence": "There was an awkward silence in the elevator.",
+      "sentence_translation": "電梯裡有一陣尷尬的沉默。",
+      "alternative_sentence": "I felt awkward asking for money.",
+      "alternative_translation": "開口借錢讓我感到很尷尬。",
+      "shadowing_tips": "注意 /ɔː/ 與 /w/ 的嘴唇圓滑收縮。"
+    },
+    {
+      "word": "spontaneous",
+      "pos": "adj. 形容詞",
+      "phonetic": "/spɑːnˈteɪ.ni.əs/",
+      "translation": "自發的、隨性的、心血來潮的",
+      "sentence": "We took a spontaneous road trip yesterday.",
+      "sentence_translation": "我們昨天來了一趟說走就走的公路旅行。",
+      "alternative_sentence": "She is a very fun and spontaneous person.",
+      "alternative_translation": "她是一個非常有趣且隨性的人。",
+      "shadowing_tips": "重音在 tei，音調高昂自然。"
+    },
+    {
+      "word": "exhausted",
+      "pos": "adj. 形容詞",
+      "phonetic": "/ɪɡˈzɑː.stɪd/",
+      "translation": "筋疲力盡的、累癱的",
+      "sentence": "I am completely exhausted after that run.",
+      "sentence_translation": "慢跑完之後，我整個人累癱了。",
+      "alternative_sentence": "She went straight to bed because she was exhausted.",
+      "alternative_translation": "她直接上床睡覺了，因為她實在太累了。",
+      "shadowing_tips": "ex 讀 /ɪɡz/，重音在 zɑː。"
+    },
+    {
+      "word": "hesitate",
+      "pos": "v. 動詞",
+      "phonetic": "/ˈhez.ə.teɪt/",
+      "translation": "猶豫、躊躇",
+      "sentence": "Don't hesitate to call if you need help.",
+      "sentence_translation": "需要幫忙的話，千萬別猶豫打給我。",
+      "alternative_sentence": "He hesitated for a second before answering.",
+      "alternative_translation": "他在回答之前猶豫了一秒鐘。",
+      "shadowing_tips": "重音在第一個音節 hez。"
+    },
+    {
+      "word": "chill",
+      "pos": "adj. / v.",
+      "phonetic": "/tʃɪl/",
+      "translation": "放鬆的、冷靜的、悠閒放空",
+      "sentence": "Let's just stay home and chill tonight.",
+      "sentence_translation": "今晚我們就待在家放鬆放空吧。",
+      "alternative_sentence": "My new roommate is super chill.",
+      "alternative_translation": "我的新室友非常隨和好相處。",
+      "shadowing_tips": "短元音 /ɪ/ 加舌尖捲音 L。"
+    },
+    {
+      "word": "reliable",
+      "pos": "adj. 形容詞",
+      "phonetic": "/rɪˈlaɪ.ə.bəl/",
+      "translation": "可靠的、值得信賴的",
+      "sentence": "He is a very reliable friend.",
+      "sentence_translation": "他是一個非常靠得住的朋友。",
+      "alternative_sentence": "This car is old but very reliable.",
+      "alternative_translation": "這輛車雖然舊，但非常可靠。",
+      "shadowing_tips": "重音在 li，結尾 ble 輕念。"
+    }
+  ]
+}
