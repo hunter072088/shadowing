@@ -5,8 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EchoShadow 1314 — 英文口說 Shadowing 智能跟讀學習系統</title>
   <meta name="description" content="專為英文跟讀法（Shadowing）打造的智能學習系統。支援片語解析造句、單字簡單造句聽播、YouTube English Podcast 1314 精選道地片語庫與跟讀錄音對比。">
+  
+  <!-- PWA & Mobile Web App Meta -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EchoShadow">
+  <meta name="mobile-web-app-capable" content="yes">
+  
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎧</text></svg>">
 </head>
 <body>
 
@@ -14,10 +24,7 @@
   <header class="app-header">
     <div class="brand">
       <div class="brand-icon-wrapper">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
-        </svg>
+        <img src="icons/icon-192.png" alt="EchoShadow Icon" class="brand-app-icon" width="44" height="44">
       </div>
       <div class="brand-info">
         <h1>EchoShadow <span class="brand-tag">1314 Edition</span></h1>
@@ -37,12 +44,15 @@
         <span>📻</span> Podcast 1314 精選庫
       </button>
       <button class="nav-tab" data-tab="history" id="tab-btn-history">
-        <span>📚</span> 我的生詞複習本
+        <span>📚</span> 生詞與收藏本
       </button>
     </nav>
 
     <!-- Header Actions -->
     <div class="header-actions">
+      <button class="action-pill-btn header-mobile-btn" id="open-mobile-modal-btn" title="手機安裝與同網連線">
+        <span>📱</span> 手機安裝
+      </button>
       <button class="icon-btn" id="open-settings-btn" title="語音與跟讀設定" aria-label="設定">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -88,13 +98,19 @@
       <!-- Phrase Result Workspace -->
       <div class="result-card" id="phrase-result-area">
         <div class="result-badge-bar">
-          <span class="type-badge">美式口語片語</span>
+          <span class="type-badge badge-phrase">美式口語片語</span>
           <span class="card-level-badge level-b1">Podcast 1314 推薦</span>
         </div>
 
         <div class="result-title-row">
-          <div class="result-title" id="res-phrase-title">call it a day</div>
-          <div class="result-translation" id="res-phrase-translation">今天就到此為止吧 / 收工了</div>
+          <div>
+            <span class="result-title" id="res-phrase-title">call it a day</span>
+            <span class="result-translation" id="res-phrase-translation">今天就到此為止吧 / 收工了</span>
+          </div>
+          <!-- Favorite Action Button -->
+          <button class="fav-toggle-btn" id="fav-phrase-btn" title="加入我的最愛">
+            <span class="fav-star">⭐</span> <span class="fav-text">加入最愛</span>
+          </button>
         </div>
 
         <!-- Explanation -->
@@ -175,7 +191,7 @@
     <section class="tab-pane" id="tab-word">
       <div class="section-banner">
         <h2 class="banner-title">🔤 單字簡單造句與跟讀 (Word Shadowing)</h2>
-        <p class="banner-desc">輸入任何想學習的單字，AI 會為你進行【簡單造句】——拒絕冗長難句，專注於日常生活高頻、好懂、好開口的精煉短句，並透過重複聽播牢固記憶！</p>
+        <p class="banner-desc">輸入任何想學習的單字，AI 會為你進行【簡單造句】——拒絕冗長難句，專注於日常生活高頻、好懂、好開口的精煉短句，並透過重複聽播磨練口腔肌肉記憶！</p>
       </div>
 
       <!-- Input Card -->
@@ -202,14 +218,20 @@
       <!-- Word Result Workspace -->
       <div class="result-card" id="word-result-area">
         <div class="result-badge-bar">
-          <span class="type-badge" id="res-word-pos">adj. 形容詞</span>
+          <span class="type-badge badge-word" id="res-word-pos">日常單字</span>
           <span class="card-level-badge level-a2">日常生活精選</span>
         </div>
 
         <div class="result-title-row">
-          <div class="result-title" id="res-word-title">procrastinate</div>
-          <div class="result-phonetic" id="res-word-phonetic">/prəˈkræs.tə.neɪt/</div>
-          <div class="result-translation" id="res-word-translation">拖延、拖拖拉拉</div>
+          <div>
+            <span class="result-title" id="res-word-title">procrastinate</span>
+            <span class="result-phonetic" id="res-word-phonetic">/prəˈkræs.tə.neɪt/</span>
+            <span class="result-translation" id="res-word-translation">拖延、拖拖拉拉</span>
+          </div>
+          <!-- Favorite Action Button -->
+          <button class="fav-toggle-btn" id="fav-word-btn" title="加入我的最愛">
+            <span class="fav-star">⭐</span> <span class="fav-text">加入最愛</span>
+          </button>
         </div>
 
         <!-- Practice Simple Sentence Showcase -->
@@ -303,18 +325,39 @@
     </section>
 
     <!-- ==========================================
-         TAB 4: HISTORY / REVIEW
+         TAB 4: NOTEBOOK & FAVORITES (需求 1 升級)
          ========================================== -->
     <section class="tab-pane" id="tab-history">
       <div class="section-banner">
         <div class="history-header">
           <div>
-            <h2 class="banner-title">📚 我的生詞與跟讀記錄本</h2>
-            <p class="banner-desc">自動保存你所查詢與練習過的所有片語與單字，隨時溫故知新，建立牢固的英文口腔肌肉記憶。</p>
+            <h2 class="banner-title">📚 我的生詞、片語與收藏本</h2>
+            <p class="banner-desc">專屬學習庫：清楚區隔「🎧 片語」與「🔤 單字」，並支援「⭐ 我的最愛」標記收藏。隨時重複聽播，鞏固口說肌肉記憶！</p>
           </div>
           <button class="action-pill-btn" id="clear-history-btn">
-            清空所有記錄
+            清空記錄
           </button>
+        </div>
+      </div>
+
+      <!-- Segmented Tab Filter & Count Stats -->
+      <div class="history-filter-toolbar">
+        <div class="history-filter-tabs">
+          <button class="history-filter-pill active" data-filter="all" id="hist-filter-all">
+            <span>🌟</span> 全部項目 (<span id="count-all">0</span>)
+          </button>
+          <button class="history-filter-pill" data-filter="fav" id="hist-filter-fav">
+            <span>⭐</span> 我的最愛 (<span id="count-fav">0</span>)
+          </button>
+          <button class="history-filter-pill" data-filter="phrase" id="hist-filter-phrase">
+            <span>🎧</span> 片語專區 (<span id="count-phrase">0</span>)
+          </button>
+          <button class="history-filter-pill" data-filter="word" id="hist-filter-word">
+            <span>🔤</span> 單字專區 (<span id="count-word">0</span>)
+          </button>
+        </div>
+        <div class="history-stats-bar" id="history-stats-bar">
+          載入中...
         </div>
       </div>
 
@@ -401,6 +444,61 @@
   </footer>
 
   <!-- ==========================================
+       MOBILE CONNECT & INSTALL MODAL (需求 3)
+       ========================================== -->
+  <div class="modal-overlay" id="mobile-modal" role="dialog" aria-modal="true" aria-labelledby="mobile-modal-title">
+    <div class="modal-content" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="mobile-modal-title">📱 手機免安裝商店 • 立即使用教學</h3>
+        <button class="modal-close-btn" id="close-mobile-btn" aria-label="關閉">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="mobile-modal-body">
+        <p style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 1.25rem;">
+          本 APP 已採用現代 <strong>PWA（Progressive Web App）</strong>技術，徹底解決手機安裝 APK 擋住或 iPhone 無法側載的問題！任何手機只需打開瀏覽器即可直接「加入主畫面」秒速安裝。
+        </p>
+
+        <!-- QR Code and Link Area -->
+        <div id="mobile-qr-area" style="margin-bottom: 1.5rem;"></div>
+
+        <!-- OS Specific Instructions -->
+        <div class="mobile-instructions">
+          <div class="os-instruction-card">
+            <div class="os-instruction-header">
+              <span class="os-badge-icon">🍎</span>
+              <strong>iPhone / iPad (iOS Safari) 操作步驟：</strong>
+            </div>
+            <ol class="os-steps-list">
+              <li>手機連線到同一個 Wi-Fi，打開 <strong>Safari 瀏覽器</strong> 並掃描或輸入上方網址。</li>
+              <li>點擊 Safari 螢幕底部的 <strong>「分享」圖示</strong>（方形帶有向上箭頭）。</li>
+              <li>在選單中點選 <strong>「加入主畫面」(Add to Home Screen)</strong>。</li>
+              <li>完成！手機桌面將產生 EchoShadow 專屬 App 圖示，打開即是全螢幕原生體驗。</li>
+            </ol>
+          </div>
+
+          <div class="os-instruction-card" style="margin-top: 1rem;">
+            <div class="os-instruction-header">
+              <span class="os-badge-icon">🤖</span>
+              <strong>Android 安卓手機 (Chrome / Edge) 操作步驟：</strong>
+            </div>
+            <ol class="os-steps-list">
+              <li>手機連線到同一個 Wi-Fi，打開 <strong>Chrome 瀏覽器</strong> 輸入上方網址。</li>
+              <li>網頁載入時會自動跳出 <strong>「安裝 EchoShadow」</strong> 提示，或點擊右上角三點選單「安裝應用程式」。</li>
+              <li>點擊「安裝」後，App 將自動常駐於桌面與應用程式清單，無任何系統相容問題！</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="primary-btn" type="button" id="ack-mobile-btn">好，我清楚了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
        SETTINGS MODAL
        ========================================== -->
   <div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
@@ -468,10 +566,24 @@
   </div>
 
   <!-- Scripts -->
+  <script src="js/qrcode.js"></script>
   <script src="js/database.js"></script>
   <script src="js/speech.js"></script>
   <script src="js/recorder.js"></script>
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then((reg) => {
+          console.log('EchoShadow PWA Service Worker ready:', reg.scope);
+        }).catch((err) => {
+          console.warn('Service Worker registration skipped:', err);
+        });
+      });
+    }
+  </script>
 </body>
 </html>

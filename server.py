@@ -85,6 +85,24 @@ class ShadowingRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_json({"error": str(e)}, status=500)
             return
 
+        elif path == "/api/network-info":
+            import socket
+            ip = "127.0.0.1"
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(('10.255.255.255', 1))
+                ip = s.getsockname()[0]
+                s.close()
+            except Exception:
+                pass
+            self.send_json({
+                "port": PORT,
+                "local_ip": ip,
+                "network_url": f"http://{ip}:{PORT}",
+                "local_url": f"http://localhost:{PORT}"
+            })
+            return
+
         elif path == "/api/settings":
             try:
                 with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
@@ -151,6 +169,8 @@ class ShadowingRequestHandler(http.server.BaseHTTPRequestHandler):
             self.handle_generate(req_data)
         elif path == "/api/history":
             self.handle_save_history(req_data)
+        elif path == "/api/history/favorite":
+            self.handle_toggle_favorite(req_data)
         elif path == "/api/settings":
             self.handle_save_settings(req_data)
         else:
@@ -199,6 +219,31 @@ class ShadowingRequestHandler(http.server.BaseHTTPRequestHandler):
             with open(HISTORY_FILE, "w", encoding="utf-8") as f:
                 json.dump(history, f, ensure_ascii=False, indent=2)
             self.send_json({"success": True, "item": item})
+        except Exception as e:
+            self.send_json({"error": str(e)}, status=500)
+
+    def handle_toggle_favorite(self, req_data):
+        item_id = str(req_data.get("id", ""))
+        text = req_data.get("text", "").lower().strip()
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                history = json.load(f)
+            found = False
+            target_status = False
+            for h in history:
+                if (item_id and str(h.get("id")) == item_id) or (text and h.get("text", "").lower().strip() == text):
+                    h["favorite"] = not h.get("favorite", False)
+                    target_status = h["favorite"]
+                    found = True
+                    break
+            if not found and req_data.get("item"):
+                item = req_data["item"]
+                item["favorite"] = True
+                target_status = True
+                history.insert(0, item)
+            with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+                json.dump(history, f, ensure_ascii=False, indent=2)
+            self.send_json({"success": True, "favorite": target_status, "count": len(history)})
         except Exception as e:
             self.send_json({"error": str(e)}, status=500)
 
@@ -401,10 +446,21 @@ class ShadowingRequestHandler(http.server.BaseHTTPRequestHandler):
 
 def run_server():
     import urllib.parse
+    import socket
+    local_ip = "127.0.0.1"
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('10.255.255.255', 1))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        pass
+
     print(f"==================================================")
     print(f" 🎧 EchoShadow 1314 English Shadowing Server")
-    print(f" Running at: http://localhost:{PORT}")
-    print(f" Press Ctrl+C to stop the server")
+    print(f" 本機電腦網址: http://localhost:{PORT}")
+    print(f" 手機同Wi-Fi網址: http://{local_ip}:{PORT}")
+    print(f" 按 Ctrl+C 可停止伺服器")
     print(f"==================================================")
     
     # Try binding port with SO_REUSEADDR

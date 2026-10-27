@@ -1,5 +1,13 @@
 [
   {
+    "id": "p_test",
+    "type": "phrase",
+    "text": "call it a day",
+    "translation": "???????? / ???",
+    "sentence": "We have accomplished a lot today. Let us call it a day.",
+    "favorite": true
+  },
+  {
     "id": "p_1793082566976",
     "type": "phrase",
     "text": "Can I answer in a simple way",

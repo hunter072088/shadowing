@@ -1,6 +1,6 @@
 /**
  * EchoShadow 1314 - Main Application Controller
- * Handles tabs, user input, AI generation, player integration, and recording.
+ * Handles tabs, user input, AI generation, player integration, favorites, and PWA mobile installation.
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       apiKey: ""
     },
     history: [],
+    historyFilter: "all", // 'all' | 'fav' | 'phrase' | 'word'
     podcastFilter: {
       category: "all",
       level: "all",
@@ -32,6 +33,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const settingsBtn = document.getElementById("open-settings-btn");
   const closeSettingsBtn = document.getElementById("close-settings-btn");
   const saveSettingsBtn = document.getElementById("save-settings-btn");
+
+  // Mobile modal elements
+  const mobileModal = document.getElementById("mobile-modal");
+  const openMobileBtn = document.getElementById("open-mobile-modal-btn");
+  const closeMobileBtn = document.getElementById("close-mobile-btn");
+  const ackMobileBtn = document.getElementById("ack-mobile-btn");
+  const mobileQrArea = document.getElementById("mobile-qr-area");
 
   // Load settings and history
   state.settings = await API.getSettings();
@@ -164,6 +172,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const phraseInput = document.getElementById("phrase-input");
   const phraseGenBtn = document.getElementById("phrase-gen-btn");
   const phraseResultArea = document.getElementById("phrase-result-area");
+  const favPhraseBtn = document.getElementById("fav-phrase-btn");
 
   // Quick phrase recommendation tags
   document.querySelectorAll(".quick-tag").forEach(tag => {
@@ -190,6 +199,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await API.generate("phrase", query, state.settings.apiKey);
       setLoading(phraseGenBtn, false, "✨ 開始 AI 解析與造句");
       renderPhraseResult(data);
+
+      // Check if item was previously favorited
+      const prevFav = state.history.find(h => h.text.toLowerCase() === data.text.toLowerCase());
+      const isFav = prevFav ? !!prevFav.favorite : false;
+
       // Save to history
       const historyItem = {
         id: "p_" + Date.now(),
@@ -197,10 +211,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         text: data.text,
         translation: data.translation,
         sentence: data.sentence,
+        favorite: isFav,
         timestamp: Date.now()
       };
       await API.saveHistory(historyItem);
       state.history = await API.getHistory();
+      updateFavBtnUI(favPhraseBtn, isFav);
     } catch (e) {
       setLoading(phraseGenBtn, false, "✨ 開始 AI 解析與造句");
       console.error(e);
@@ -224,6 +240,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     sentEl.textContent = item.sentence || "";
     sentEl.dataset.fulltext = item.sentence || "";
     document.getElementById("res-phrase-sent-trans").textContent = item.sentence_translation || "";
+
+    // Check favorite status
+    const isFav = state.history.some(h => h.text.toLowerCase() === item.text.toLowerCase() && h.favorite);
+    updateFavBtnUI(favPhraseBtn, isFav);
 
     // Dialogue
     const dialogueContainer = document.getElementById("res-phrase-dialogue");
@@ -259,12 +279,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     startShadowingTarget(item.sentence, sentEl);
   }
 
+  // Favorite toggle for Phrase
+  if (favPhraseBtn) {
+    favPhraseBtn.addEventListener("click", async () => {
+      if (!state.activeItem) return;
+      const isFav = await API.toggleFavorite(state.activeItem.id, state.activeItem.text, {
+        id: state.activeItem.id || "p_" + Date.now(),
+        type: "phrase",
+        text: state.activeItem.text,
+        translation: state.activeItem.translation,
+        sentence: state.activeItem.sentence,
+        favorite: true,
+        timestamp: Date.now()
+      });
+      state.history = await API.getHistory();
+      updateFavBtnUI(favPhraseBtn, isFav);
+    });
+  }
+
   // ==========================================
   // REQUIREMENT 2: WORD SHADOWING (單字簡單造句)
   // ==========================================
   const wordInput = document.getElementById("word-input");
   const wordGenBtn = document.getElementById("word-gen-btn");
   const wordResultArea = document.getElementById("word-result-area");
+  const favWordBtn = document.getElementById("fav-word-btn");
 
   document.querySelectorAll(".quick-word-tag").forEach(tag => {
     tag.addEventListener("click", () => {
@@ -290,6 +329,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await API.generate("word", query, state.settings.apiKey);
       setLoading(wordGenBtn, false, "⚡ AI 簡單造句 & 重複聽播");
       renderWordResult(data);
+
+      const prevFav = state.history.find(h => h.text.toLowerCase() === data.text.toLowerCase());
+      const isFav = prevFav ? !!prevFav.favorite : false;
+
       // Save to history
       const historyItem = {
         id: "w_" + Date.now(),
@@ -297,10 +340,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         text: data.text,
         translation: data.translation,
         sentence: data.sentence,
+        favorite: isFav,
         timestamp: Date.now()
       };
       await API.saveHistory(historyItem);
       state.history = await API.getHistory();
+      updateFavBtnUI(favWordBtn, isFav);
     } catch (e) {
       setLoading(wordGenBtn, false, "⚡ AI 簡單造句 & 重複聽播");
       console.error(e);
@@ -322,6 +367,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     sentEl.textContent = item.sentence || "";
     sentEl.dataset.fulltext = item.sentence || "";
     document.getElementById("res-word-sent-trans").textContent = item.sentence_translation || "";
+
+    // Check favorite status
+    const isFav = state.history.some(h => h.text.toLowerCase() === item.text.toLowerCase() && h.favorite);
+    updateFavBtnUI(favWordBtn, isFav);
 
     // Alternative sentence
     const altBox = document.getElementById("res-word-alt-box");
@@ -348,6 +397,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Default load simple sentence into player
     startShadowingTarget(item.sentence, sentEl);
+  }
+
+  // Favorite toggle for Word
+  if (favWordBtn) {
+    favWordBtn.addEventListener("click", async () => {
+      if (!state.activeItem) return;
+      const isFav = await API.toggleFavorite(state.activeItem.id, state.activeItem.text, {
+        id: state.activeItem.id || "w_" + Date.now(),
+        type: "word",
+        text: state.activeItem.text,
+        translation: state.activeItem.translation,
+        sentence: state.activeItem.sentence,
+        favorite: true,
+        timestamp: Date.now()
+      });
+      state.history = await API.getHistory();
+      updateFavBtnUI(favWordBtn, isFav);
+    });
+  }
+
+  function updateFavBtnUI(btn, isFav) {
+    if (!btn) return;
+    btn.classList.toggle("is-fav", !!isFav);
+    const starEl = btn.querySelector(".fav-star");
+    const textEl = btn.querySelector(".fav-text");
+    if (starEl) starEl.textContent = isFav ? "★" : "⭐";
+    if (textEl) textEl.textContent = isFav ? "已在我的最愛" : "加入最愛";
   }
 
   // ==========================================
@@ -386,7 +462,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (refreshRecommendBtn) {
     refreshRecommendBtn.addEventListener("click", () => {
-      // Shuffle & flash animation
       refreshRecommendBtn.classList.add("rotating");
       setTimeout(() => {
         refreshRecommendBtn.classList.remove("rotating");
@@ -421,12 +496,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     filtered.forEach(item => {
+      const isFav = state.history.some(h => h.text.toLowerCase() === item.text.toLowerCase() && h.favorite);
       const card = document.createElement("div");
       card.className = "podcast-card";
       card.innerHTML = `
         <div class="card-header">
           <span class="card-category-badge">${item.category}</span>
-          <span class="card-level-badge level-${item.level.toLowerCase()}">${item.level}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="card-level-badge level-${item.level.toLowerCase()}">${item.level}</span>
+            <button class="card-fav-btn ${isFav ? 'is-fav' : ''}" title="${isFav ? '點擊取消最愛' : '加入我的最愛'}" data-text="${escapeHtml(item.text)}">
+              ${isFav ? '★' : '☆'}
+            </button>
+          </div>
         </div>
         <div class="card-title">${escapeHtml(item.text)}</div>
         <div class="card-translation">${escapeHtml(item.translation)}</div>
@@ -446,6 +527,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       `;
 
+      // Favorite click on podcast card
+      const favBtn = card.querySelector(".card-fav-btn");
+      favBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const newFav = await API.toggleFavorite(item.id, item.text, {
+          id: item.id,
+          type: "phrase",
+          text: item.text,
+          translation: item.translation,
+          sentence: item.sentence,
+          favorite: true,
+          timestamp: Date.now()
+        });
+        favBtn.classList.toggle("is-fav", newFav);
+        favBtn.textContent = newFav ? "★" : "☆";
+        favBtn.title = newFav ? "點擊取消最愛" : "加入我的最愛";
+        state.history = await API.getHistory();
+      });
+
       // Card action 1: Switch to Phrase tab & launch full shadowing
       card.querySelector(".shadow-now-btn").addEventListener("click", () => {
         switchTab("phrase");
@@ -464,6 +564,172 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ==========================================
+  // NOTEBOOK & FAVORITES (需求 1 升級)
+  // ==========================================
+  const historyList = document.getElementById("history-list");
+  const clearHistoryBtn = document.getElementById("clear-history-btn");
+
+  // History sub-filter pills
+  document.querySelectorAll(".history-filter-pill").forEach(pill => {
+    pill.addEventListener("click", () => {
+      document.querySelectorAll(".history-filter-pill").forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      state.historyFilter = pill.dataset.filter;
+      renderHistoryList();
+    });
+  });
+
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener("click", async () => {
+      if (confirm("確定要清除所有學習記錄嗎？（收藏也會被清空）")) {
+        await API.deleteHistory();
+        state.history = [];
+        renderHistoryList();
+      }
+    });
+  }
+
+  function renderHistoryList() {
+    if (!historyList) return;
+    historyList.innerHTML = "";
+
+    // Count statistics
+    const totalCount = state.history.length;
+    const favCount = state.history.filter(h => h.favorite).length;
+    const phraseCount = state.history.filter(h => h.type === "phrase").length;
+    const wordCount = state.history.filter(h => h.type === "word").length;
+
+    const countAllEl = document.getElementById("count-all");
+    const countFavEl = document.getElementById("count-fav");
+    const countPhraseEl = document.getElementById("count-phrase");
+    const countWordEl = document.getElementById("count-word");
+    const statsBar = document.getElementById("history-stats-bar");
+
+    if (countAllEl) countAllEl.textContent = totalCount;
+    if (countFavEl) countFavEl.textContent = favCount;
+    if (countPhraseEl) countPhraseEl.textContent = phraseCount;
+    if (countWordEl) countWordEl.textContent = wordCount;
+    if (statsBar) {
+      statsBar.innerHTML = `共 <strong>${totalCount}</strong> 筆 • 🎧 片語 <strong>${phraseCount}</strong> 篇 • 🔤 單字 <strong>${wordCount}</strong> 個 • ⭐ 最愛 <strong>${favCount}</strong> 筆`;
+    }
+
+    // Filter items based on active sub-tab
+    let filteredHistory = state.history;
+    if (state.historyFilter === "fav") {
+      filteredHistory = state.history.filter(h => h.favorite);
+    } else if (state.historyFilter === "phrase") {
+      filteredHistory = state.history.filter(h => h.type === "phrase");
+    } else if (state.historyFilter === "word") {
+      filteredHistory = state.history.filter(h => h.type === "word");
+    }
+
+    if (filteredHistory.length === 0) {
+      let emptyMsg = "尚無學習記錄，趕快輸入片語或單字開始練習吧！";
+      if (state.historyFilter === "fav") {
+        emptyMsg = "目前還沒有加入「我的最愛」的片語或單字，點擊任何卡片上的 ⭐ 即可收藏！";
+      } else if (state.historyFilter === "phrase") {
+        emptyMsg = "目前尚無片語記錄，前往「片語跟讀」或「Podcast 1314 精選庫」展開練習吧！";
+      } else if (state.historyFilter === "word") {
+        emptyMsg = "目前尚無單字記錄，前往「單字簡單造句」輸入單字開始跟讀！";
+      }
+
+      historyList.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">${state.historyFilter === 'fav' ? '⭐' : '📖'}</div>
+          <p>${emptyMsg}</p>
+        </div>
+      `;
+      return;
+    }
+
+    filteredHistory.forEach(item => {
+      const card = document.createElement("div");
+      const isPhrase = item.type === "phrase";
+      card.className = `history-card ${isPhrase ? 'type-phrase' : 'type-word'}`;
+      const isFav = !!item.favorite;
+
+      card.innerHTML = `
+        <div class="history-badge ${isPhrase ? 'badge-phrase' : 'badge-word'}">
+          ${isPhrase ? '🎧 片語' : '🔤 單字'}
+        </div>
+        <div class="history-content">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="history-title">${escapeHtml(item.text)}</span>
+            <button class="card-fav-btn ${isFav ? 'is-fav' : ''}" title="${isFav ? '取消最愛' : '加入最愛'}">
+              ${isFav ? '★' : '☆'}
+            </button>
+          </div>
+          <div class="history-trans">${escapeHtml(item.translation || '')}</div>
+          <div class="history-sent">"${escapeHtml(item.sentence || '')}"</div>
+        </div>
+        <div class="history-actions">
+          <button class="history-play-btn" title="立即跟讀">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            跟讀
+          </button>
+          <button class="history-del-btn" title="刪除此筆">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      `;
+
+      // Favorite toggle inside history card
+      card.querySelector(".card-fav-btn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await API.toggleFavorite(item.id, item.text);
+        state.history = await API.getHistory();
+        renderHistoryList();
+      });
+
+      card.querySelector(".history-play-btn").addEventListener("click", () => {
+        if (isPhrase) {
+          switchTab("phrase");
+          phraseInput.value = item.text;
+          handlePhraseGenerate();
+        } else {
+          switchTab("word");
+          wordInput.value = item.text;
+          handleWordGenerate();
+        }
+      });
+
+      card.querySelector(".history-del-btn").addEventListener("click", async () => {
+        await API.deleteHistory(item.id);
+        state.history = await API.getHistory();
+        renderHistoryList();
+      });
+
+      historyList.appendChild(card);
+    });
+  }
+
+  // ==========================================
+  // MOBILE CONNECT & INSTALL MODAL (需求 3)
+  // ==========================================
+  if (openMobileBtn && mobileModal) {
+    openMobileBtn.addEventListener("click", async () => {
+      mobileModal.classList.add("open");
+      if (mobileQrArea) {
+        mobileQrArea.innerHTML = "<div style='color:#94a3b8;font-size:14px;padding:20px;text-align:center;'>正在取得本機 Wi-Fi 網址...</div>";
+        const netInfo = await API.getNetworkInfo();
+        mobileQrArea.innerHTML = createQRCodeSVG(netInfo.network_url, 180);
+      }
+    });
+  }
+
+  if (closeMobileBtn && mobileModal) {
+    closeMobileBtn.addEventListener("click", () => {
+      mobileModal.classList.remove("open");
+    });
+  }
+
+  if (ackMobileBtn && mobileModal) {
+    ackMobileBtn.addEventListener("click", () => {
+      mobileModal.classList.remove("open");
+    });
+  }
+
+  // ==========================================
   // CORE SHADOWING PLAYER INTEGRATION
   // ==========================================
   const playBtn = document.getElementById("player-play-btn");
@@ -475,25 +741,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const playSentenceBtn = document.getElementById("play-sentence-btn");
   const playDialogueAllBtn = document.getElementById("play-dialogue-all-btn");
 
-  // Speed chips
-  document.querySelectorAll(".speed-chip").forEach(chip => {
-    chip.addEventListener("click", () => {
-      document.querySelectorAll(".speed-chip").forEach(c => c.classList.remove("active"));
-      chip.classList.add("active");
-      const speed = parseFloat(chip.dataset.speed);
-      window.shadowEngine.setRate(speed);
-      if (rateSelect) rateSelect.value = speed;
-    });
-  });
-
   if (rateSelect) {
     rateSelect.value = state.settings.rate;
     rateSelect.addEventListener("change", (e) => {
       const speed = parseFloat(e.target.value);
       window.shadowEngine.setRate(speed);
-      document.querySelectorAll(".speed-chip").forEach(c => {
-        c.classList.toggle("active", parseFloat(c.dataset.speed) === speed);
-      });
     });
   }
 
@@ -592,7 +844,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Reset karaoke styling on old elements
     document.querySelectorAll(".karaoke-word").forEach(w => w.classList.remove("active-word"));
 
-    // Prepare target element for karaoke wrapping if not already wrapped
     if (targetEl) {
       wrapKaraokeWords(targetEl, text);
     }
@@ -732,87 +983,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   // ==========================================
-  // HISTORY / REVIEW TAB
-  // ==========================================
-  const historyList = document.getElementById("history-list");
-  const clearHistoryBtn = document.getElementById("clear-history-btn");
-
-  if (clearHistoryBtn) {
-    clearHistoryBtn.addEventListener("click", async () => {
-      if (confirm("確定要清除所有學習歷史記錄嗎？")) {
-        await API.deleteHistory();
-        state.history = [];
-        renderHistoryList();
-      }
-    });
-  }
-
-  function renderHistoryList() {
-    if (!historyList) return;
-    historyList.innerHTML = "";
-
-    if (state.history.length === 0) {
-      historyList.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">📖</div>
-          <p>尚無跟讀學習記錄，趕快輸入片語或單字開始練習吧！</p>
-        </div>
-      `;
-      return;
-    }
-
-    state.history.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "history-card";
-      const isPhrase = item.type === "phrase";
-      card.innerHTML = `
-        <div class="history-badge ${isPhrase ? 'badge-phrase' : 'badge-word'}">
-          ${isPhrase ? '片語' : '單字'}
-        </div>
-        <div class="history-content">
-          <div class="history-title">${escapeHtml(item.text)}</div>
-          <div class="history-trans">${escapeHtml(item.translation || '')}</div>
-          <div class="history-sent">"${escapeHtml(item.sentence || '')}"</div>
-        </div>
-        <div class="history-actions">
-          <button class="history-play-btn" title="立即跟讀">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            跟讀
-          </button>
-          <button class="history-del-btn" title="刪除此筆">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        </div>
-      `;
-
-      card.querySelector(".history-play-btn").addEventListener("click", () => {
-        if (isPhrase) {
-          switchTab("phrase");
-          phraseInput.value = item.text;
-          handlePhraseGenerate();
-        } else {
-          switchTab("word");
-          wordInput.value = item.text;
-          handleWordGenerate();
-        }
-      });
-
-      card.querySelector(".history-del-btn").addEventListener("click", async () => {
-        await API.deleteHistory(item.id);
-        state.history = await API.getHistory();
-        renderHistoryList();
-      });
-
-      historyList.appendChild(card);
-    });
-  }
-
-  // ==========================================
   // SETTINGS MODAL
   // ==========================================
   if (settingsBtn && settingsModal) {
     settingsBtn.addEventListener("click", () => {
-      // Fill current settings
       const apiKeyInput = document.getElementById("settings-api-key");
       const rateInput = document.getElementById("settings-rate-input");
       const intervalInput = document.getElementById("settings-interval-input");
@@ -876,7 +1050,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Global Keyboard Shortcuts
   document.addEventListener("keydown", (e) => {
-    // Only if not inside an input / textarea
     if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
 
     if (e.code === "Space") {

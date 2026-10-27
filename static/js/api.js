@@ -120,6 +120,62 @@ const API = {
     return local;
   },
 
+  async toggleFavorite(id, text, item = null) {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/history/favorite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, text, item })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Update local cache
+        let local = await this.getHistory();
+        const found = local.find(h => (id && h.id === id) || (text && h.text.toLowerCase() === text.toLowerCase()));
+        if (found) {
+          found.favorite = data.favorite;
+        } else if (item) {
+          item.favorite = true;
+          local.unshift(item);
+        }
+        localStorage.setItem("echoshadow_history", JSON.stringify(local));
+        return data.favorite;
+      }
+    } catch (e) {
+      console.warn("Could not toggle favorite on server, using localStorage:", e);
+    }
+    // Fallback in localStorage
+    let local = await this.getHistory();
+    const found = local.find(h => (id && h.id === id) || (text && h.text.toLowerCase() === text.toLowerCase()));
+    let newStatus = true;
+    if (found) {
+      found.favorite = !found.favorite;
+      newStatus = found.favorite;
+    } else if (item) {
+      item.favorite = true;
+      local.unshift(item);
+    }
+    localStorage.setItem("echoshadow_history", JSON.stringify(local));
+    return newStatus;
+  },
+
+  async getNetworkInfo() {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/network-info`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.warn("Could not load network info from server:", e);
+    }
+    return {
+      port: 8765,
+      local_ip: window.location.hostname || "localhost",
+      network_url: window.location.origin,
+      local_url: "http://localhost:8765"
+    };
+  },
+
   async deleteHistory(id) {
     try {
       await fetch(`${this.baseUrl}/api/history?id=${encodeURIComponent(id)}`, {
