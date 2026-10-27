@@ -89,9 +89,20 @@ py -3 server.py
 
 ---
 
+## 🌐 線上即用免安裝版（GitHub Pages）
+
+已為您發布至 GitHub Pages，任何裝置（iPhone、Android、iPad、筆電）皆可直接透過網址使用，無須啟動本機電腦伺服器：
+👉 **[https://hunter072088.github.io/shadowing/](https://hunter072088.github.io/shadowing/)**
+
+* 支援離線快取（Service Worker）
+* 支援自備 Google Gemini API Key（亦內建離線智能語法與單字造句引擊）
+* 收藏夾與歷史紀錄自動安全保存在手機本機中
+
+---
+
 ## 🎨 專屬 App 圖示規格
 已為您設計符合科技感與耳機聲波主題的專屬 App 圖示，並裁切為全套規格：
-* `static/icons/icon-512.png` (512x512 PWA 高畫質圖示)
-* `static/icons/icon-192.png` (192x192 手機桌面圖示)
-* `static/icons/apple-touch-icon.png` (180x180 iOS 專屬圖示)
-* `static/icons/favicon-64.png` 與 `static/favicon.ico` (瀏覽器標籤頁圖示)
+* `icons/icon-512.png` (512x512 PWA 高畫質圖示)
+* `icons/icon-192.png` (192x192 手機桌面圖示)
+* `icons/apple-touch-icon.png` (180x180 iOS 專屬圖示)
+* `icons/favicon-64.png` 與 `favicon.ico` (瀏覽器標籤頁圖示)
