@@ -3,7 +3,7 @@
     "id": "p_test",
     "type": "phrase",
     "text": "call it a day",
-    "translation": "???????? / ???",
+    "translation": "今天就到此為止吧 / 收工了",
     "sentence": "We have accomplished a lot today. Let us call it a day.",
     "favorite": true
   },
@@ -11,8 +11,8 @@
     "id": "p_1793084755662",
     "type": "phrase",
     "text": "Can I answer in a simple way",
-    "translation": "「Can I answer in a simple way」（道地美式日常口語）",
-    "sentence": "Whenever things get tough, I just remember to Can I answer in a simple way.",
+    "translation": "我可以簡單回答一下嗎？",
+    "sentence": "Whenever you ask, I will answer in a simple way.",
     "favorite": false,
     "timestamp": 1793084755662
   },

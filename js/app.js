@@ -387,9 +387,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     phraseResultArea.style.display = "block";
     phraseResultArea.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
+    let trans = (item.translation || "").trim();
+    if (!trans || trans.includes("???") || /^「.*」$/.test(trans) || trans.includes("（道地美式日常口語）")) {
+      if (typeof getBuiltinTranslation === "function") {
+        const builtin = getBuiltinTranslation(item.text);
+        if (builtin) trans = builtin;
+      }
+    }
+    item.translation = trans;
+
     // Populate data
     document.getElementById("res-phrase-title").textContent = item.text;
-    document.getElementById("res-phrase-translation").textContent = item.translation || "";
+    document.getElementById("res-phrase-translation").textContent = trans;
     document.getElementById("res-phrase-explanation").textContent = item.explanation || "";
     document.getElementById("res-phrase-pronunciation").textContent = item.pronunciation || "";
     
@@ -516,10 +525,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     wordResultArea.style.display = "block";
     wordResultArea.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
+    let trans = (item.translation || "").trim();
+    if (!trans || trans.includes("???") || /^「.*」$/.test(trans) || trans.includes("（道地美式日常口語）")) {
+      if (typeof getBuiltinTranslation === "function") {
+        const builtin = getBuiltinTranslation(item.text);
+        if (builtin) trans = builtin;
+      }
+    }
+    item.translation = trans;
+
     document.getElementById("res-word-title").textContent = item.text;
     document.getElementById("res-word-pos").textContent = item.pos || "";
     document.getElementById("res-word-phonetic").textContent = item.phonetic || "";
-    document.getElementById("res-word-translation").textContent = item.translation || "";
+    document.getElementById("res-word-translation").textContent = trans;
 
     const sentEl = document.getElementById("res-word-sentence");
     sentEl.textContent = item.sentence || "";
@@ -1019,6 +1037,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         </label>
       ` : '';
 
+      let trans = (item.translation || "").trim();
+      if (!trans || trans.includes("???") || /^「.*」$/.test(trans) || trans.includes("（道地美式日常口語）")) {
+        if (typeof getBuiltinTranslation === "function") {
+          const builtin = getBuiltinTranslation(item.text);
+          if (builtin) trans = builtin;
+        }
+      }
+
       card.innerHTML = `
         ${checkboxHtml}
         <div class="history-badge ${isPhrase ? 'badge-phrase' : 'badge-word'}">
@@ -1031,7 +1057,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               ${isFav ? '★' : '☆'}
             </button>
           </div>
-          <div class="history-trans">${escapeHtml(item.translation || '')}</div>
+          <div class="history-trans">${escapeHtml(trans)}</div>
           <div class="history-sent">"${escapeHtml(item.sentence || '')}"</div>
         </div>
         <div class="history-actions">

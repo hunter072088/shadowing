@@ -381,8 +381,25 @@ class ShadowingRequestHandler(http.server.BaseHTTPRequestHandler):
             # Return error so caller falls back to local engine
             return {"error": f"Gemini API error: {e}"}
 
+    def fetch_translation(self, text, target_lang="zh-TW"):
+        if not text or not text.strip():
+            return ""
+        try:
+            clean = text.strip()
+            url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl={target_lang}&dt=t&dt=bd&q={urllib.parse.quote(clean)}"
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=4) as res:
+                data = json.loads(res.read().decode("utf-8"))
+                if data and data[0]:
+                    trans = "".join([part[0] for part in data[0] if part and part[0]]).strip()
+                    if trans and trans.lower() != clean.lower():
+                        return trans
+        except Exception as e:
+            print(f"Translation fetch warning: {e}")
+        return ""
+
     def generate_local(self, gen_type, query):
-        """Intelligent offline fallback engine with podcast style"""
+        """Intelligent offline fallback engine with podcast style and real translations"""
         q = query.strip()
         q_lower = q.lower()
 
@@ -403,41 +420,66 @@ class ShadowingRequestHandler(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 print(f"Error reading database.json: {e}")
 
+        # Fetch live translation
+        translation = self.fetch_translation(q)
+        if not translation:
+            translation = f"「{q}」"
+
         if gen_type == "phrase":
+            sentence = f"It really makes a huge difference whenever you learn to {q} in daily life."
+            sentence_trans = self.fetch_translation(sentence)
+            if not sentence_trans or q in sentence_trans:
+                sentence_trans = f"在日常生活中，只要學會自然地說出「{translation}」，真的會帶來很大的不同。"
+
+            line_a = f"Have you ever heard someone say '{q}' in everyday English?"
+            line_b = f"Definitely! It basically means '{translation}'. Let's practice saying it together!"
+            line_a_trans = self.fetch_translation(line_a)
+            line_b_trans = self.fetch_translation(line_b)
+
             return {
                 "text": q,
                 "type": "phrase",
-                "translation": f"「{q}」（道地美式日常口語）",
-                "explanation": f"在美式口語與 English Podcast 1314 中，「{q}」常出現在輕鬆的朋友聊天或職場非正式溝通中，能夠讓你的對話聽起來更像母語人士，告別生硬的書面語。",
+                "translation": translation,
+                "explanation": f"在美式日常口語與 English Podcast 1314 中，「{q}」是非常道地的口語表達（{translation}），常出現在朋友閒聊或非正式溝通中，能夠讓你的對話聽起來更像母語人士。",
                 "pronunciation": f"注意連音與重音位置，將「{q}」視為一個完整意群順暢吐氣。",
-                "sentence": f"Whenever things get tough, I just remember to {q}.",
-                "sentence_translation": f"每當事情變得棘手時，我就會提醒自己要 {q}。",
+                "sentence": sentence,
+                "sentence_translation": sentence_trans,
                 "dialogue": [
                     {
                         "speaker": "A",
-                        "line": f"Are you sure we should {q} right now?",
-                        "translation": f"你確定我們現在就該 {q} 嗎？"
+                        "line": line_a,
+                        "translation": line_a_trans or f"你有聽過別人在日常美語中說 '{q}' 嗎？"
                     },
                     {
                         "speaker": "B",
-                        "line": f"Trust me, it's the most natural choice. Let's {q} and see how it goes.",
-                        "translation": f"相信我，這是最自然的選擇。就這麼做，看看接下來如何吧。"
+                        "line": line_b,
+                        "translation": line_b_trans or f"當然！意思就是「{translation}」，我們一起練習吧！"
                     }
                 ],
                 "shadowing_tips": "跟讀時注意節奏感，語速保持平穩，不要刻意將每個單字分開唸。"
             }
 
         elif gen_type == "word":
+            sentence = f"I try to practice using {q} in my daily conversations."
+            sentence_trans = self.fetch_translation(sentence)
+            if not sentence_trans:
+                sentence_trans = f"我試著在日常對話中多練習使用「{translation}」。"
+
+            alt_sentence = f"Could you tell me more about what {q} means to you?"
+            alt_trans = self.fetch_translation(alt_sentence)
+            if not alt_trans:
+                alt_trans = f"你能多跟我說說「{translation}」對你而言意味著什麼嗎？"
+
             return {
                 "text": q,
                 "type": "word",
-                "pos": "日常單字",
+                "pos": "常用單字",
                 "phonetic": f"/{q}/",
-                "translation": f"「{q}」",
-                "sentence": f"I really want to {q} today.",
-                "sentence_translation": f"我今天真的很想 {q}。",
-                "alternative_sentence": f"Can you show me how to {q}?",
-                "alternative_translation": f"你能示範給我看如何 {q} 嗎？",
+                "translation": translation,
+                "sentence": sentence,
+                "sentence_translation": sentence_trans,
+                "alternative_sentence": alt_sentence,
+                "alternative_translation": alt_trans,
                 "shadowing_tips": f"【簡單造句練習】這是一個短而清晰的日常句，跟讀時請跟隨音檔抑揚頓挫，重複跟讀3至5遍以建立肌肉記憶。"
             }
 

@@ -35,100 +35,237 @@ const API = {
     }
 
     // Client-side fallback: works 100% on GitHub Pages with zero latency
-    return this.clientFallback(type, query);
+    return await this.clientFallback(type, query);
   },
 
-  async callGeminiDirect(type, query, apiKey) {
-    let prompt = "";
-    if (type === "phrase") {
-      prompt = `你是一位專門設計「YouTube English Podcast 1314」風格的專業美式英語口說教練。用戶想要學習英語片語：「${query}」。請為此片語生成最道地、自然、適合跟讀的學習資料。請以繁體中文回答，並輸出純 JSON 格式：{"text":"${query}","type":"phrase","translation":"繁中翻譯","explanation":"Podcast 1314 風格的語境剖析","pronunciation":"發音與連音口訣","sentence":"Podcast風格生活化實用例句","sentence_translation":"例句繁中翻譯","dialogue":[{"speaker":"A","line":"A的自然對話","translation":"A的翻譯"},{"speaker":"B","line":"B的真實回覆","translation":"B的翻譯"}],"shadowing_tips":"跟讀建議"}`;
-    } else if (type === "word") {
-      prompt = `你是一位專業美語口說教學專家。用戶想要學習單字：「${query}」。用戶明確需求：【請簡單造句】，必須是日常生活高頻、口語化、簡單好讀、非常適合跟讀的句子（6-12字），不要複雜長難句！請以繁體中文回答，並輸出純 JSON 格式：{"text":"${query}","type":"word","pos":"詞性","phonetic":"KK音標或IPA","translation":"繁中解釋","sentence":"生活日常超實用的簡單造句","sentence_translation":"簡單造句繁中翻譯","alternative_sentence":"另一個簡單例句","alternative_translation":"另一個例句翻譯","shadowing_tips":"口說發音重點"}`;
-    } else {
-      return null;
+  /**
+   * Real-time free translation engine (Google Translate endpoint with CORS *)
+   */
+  async translateText(text, targetLang = "zh-TW") {
+    if (!text || !text.trim()) return "";
+    const clean = text.trim();
+
+    // 1. Check built-in quick dictionary
+    if (typeof getBuiltinTranslation === "function") {
+      const builtin = getBuiltinTranslation(clean);
+      if (builtin) return builtin;
     }
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-    const payload = {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        responseMimeType: "application/json"
+    // 2. Fetch live translation
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetLang}&dt=t&dt=bd&q=${encodeURIComponent(clean)}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data[0] && Array.isArray(data[0])) {
+          const trans = data[0].map(part => (part && part[0]) ? part[0] : "").join("").trim();
+          if (trans && trans.toLowerCase() !== clean.toLowerCase()) {
+            return trans;
+          }
+        }
       }
+    } catch (e) {
+      console.warn("Live translation error, falling back to local dictionary:", e);
+    }
+
+    // 3. Fallback
+    return (typeof getBuiltinTranslation === "function" ? getBuiltinTranslation(clean) : "") || clean;
+  },
+
+  /**
+   * Fetch dictionary phonetic and part-of-speech
+   */
+  async fetchDictionaryInfo(word) {
+    const clean = word.trim().toLowerCase();
+    const result = {
+      phonetic: `/${clean}/`,
+      pos: "常用單字",
+      example: ""
     };
 
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      const rawText = data.candidates[0].content.parts[0].text;
-      let clean = rawText.trim();
-      if (clean.startsWith("```json")) clean = clean.slice(7);
-      else if (clean.startsWith("```")) clean = clean.slice(3);
-      if (clean.endsWith("```")) clean = clean.slice(0, -3);
-      return JSON.parse(clean.trim());
+    // 1. Check COMMON_WORDS_DB
+    if (typeof COMMON_WORDS_DB !== "undefined") {
+      const found = COMMON_WORDS_DB.find(w => w.word.toLowerCase() === clean);
+      if (found) {
+        return {
+          phonetic: found.phonetic || result.phonetic,
+          pos: found.pos || result.pos,
+          example: found.sentence || ""
+        };
+      }
     }
-    return null;
+
+    // 2. Fetch from free dictionary API
+    try {
+      const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(clean)}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data[0]) {
+          const entry = data[0];
+          if (entry.phonetic) {
+            result.phonetic = entry.phonetic;
+          } else if (entry.phonetics && entry.phonetics.length > 0) {
+            const withText = entry.phonetics.find(p => p.text);
+            if (withText) result.phonetic = withText.text;
+          }
+
+          if (entry.meanings && entry.meanings.length > 0) {
+            const m = entry.meanings[0];
+            if (m.partOfSpeech) {
+              const posMap = {
+                "noun": "n. 名詞",
+                "verb": "v. 動詞",
+                "adjective": "adj. 形容詞",
+                "adverb": "adv. 副詞",
+                "pronoun": "pron. 代名詞",
+                "preposition": "prep. 介系詞",
+                "conjunction": "conj. 連接詞",
+                "interjection": "interj. 感嘆詞"
+              };
+              result.pos = posMap[m.partOfSpeech.toLowerCase()] || `${m.partOfSpeech}.`;
+            }
+
+            if (m.definitions && m.definitions.length > 0) {
+              const defWithEx = m.definitions.find(d => d.example);
+              if (defWithEx && defWithEx.example) {
+                result.example = defWithEx.example;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore network timeout
+    }
+
+    return result;
   },
 
-  clientFallback(type, query) {
+  async clientFallback(type, query) {
     const q = (query || "").trim();
     const qLower = q.toLowerCase();
 
     if (type === "phrase") {
-      // Check if it exists in curated database
-      const found = PODCAST_1314_PHRASES.find(p => p.text.toLowerCase() === qLower);
-      if (found) {
-        return { ...found, type: "phrase" };
+      // 1. Check curated database first
+      if (typeof PODCAST_1314_PHRASES !== "undefined") {
+        const found = PODCAST_1314_PHRASES.find(p => p.text.toLowerCase() === qLower);
+        if (found) {
+          return { ...found, type: "phrase" };
+        }
       }
+
+      // 2. Fetch real-time accurate translation
+      let translation = await this.translateText(q);
+      if (!translation || translation.toLowerCase() === qLower) {
+        translation = (typeof getBuiltinTranslation === "function" ? getBuiltinTranslation(q) : "") || `「${q}」`;
+      }
+
+      // 3. Generate contextually natural sentence & dialogue
+      let sentence = "";
+      if (/^(can|could|would|should|do|does|did|is|are|how|what|why|where)\b/i.test(q)) {
+        sentence = `${q}? Sure, please feel free to ask anytime.`;
+      } else {
+        sentence = `It really makes a huge difference whenever you learn to ${q} in daily conversations.`;
+      }
+      let sentenceTrans = await this.translateText(sentence);
+      if (!sentenceTrans || sentenceTrans.includes(q)) {
+        sentenceTrans = `在日常生活中，只要學會自然地說出「${translation}」，真的會帶來很大的不同。`;
+      }
+
+      const lineA = `Have you ever heard native speakers say "${q}" in casual chats?`;
+      const lineB = `Absolutely! It simply means "${translation}". It's super natural and common!`;
+      let lineATrans = await this.translateText(lineA);
+      let lineBTrans = await this.translateText(lineB);
 
       return {
         text: q,
         type: "phrase",
-        translation: `「${q}」（實用日常美式片語）`,
-        explanation: `在美式日常對話與 English Podcast 1314 中，「${q}」是極為生動的表達方式，適合在生活會話或隨興聊天時使用，讓你的英文口語聽起來更加流暢自然。`,
+        translation: translation,
+        explanation: `在美式日常會話與 English Podcast 1314 中，「${q}」是非常實用道地的生活口語（${translation}），常出現在朋友閒聊或輕鬆對話中，能讓你的英文口語聽起來更加流暢自然。`,
         pronunciation: `注意片語意群連讀，將「${q}」作為一個流暢音群吐出，尾音保持放鬆。`,
-        sentence: `It really makes a huge difference whenever we ${q} during our daily routine.`,
-        sentence_translation: `每當我們在日常生活中 ${q} 時，真的會帶來很大的不同。`,
+        sentence: sentence,
+        sentence_translation: sentenceTrans,
         dialogue: [
-          { speaker: "A", line: `I was thinking about whether we should ${q} today.`, translation: `我剛剛在想我們今天是否應該 ${q}。` },
-          { speaker: "B", line: `Definitely! That sounds like a fantastic idea. Let's do it!`, translation: `絕對要！那聽起來是個超棒的主意。我們就這麼做吧！` }
+          { speaker: "A", line: lineA, translation: lineATrans || `你有聽過母語人士在聊天時說 "${q}" 嗎？` },
+          { speaker: "B", line: lineB, translation: lineBTrans || `當然！意思就是「${translation}」，非常自然常見！` }
         ],
         shadowing_tips: "跟讀時注意句子的節奏感（Rhythm），強調實詞，弱讀介詞與冠詞。"
       };
     } else if (type === "word") {
-      // Check common words DB
-      const foundWord = COMMON_WORDS_DB.find(w => w.word.toLowerCase() === qLower);
-      if (foundWord) {
-        return {
-          text: foundWord.word,
-          type: "word",
-          pos: foundWord.pos,
-          phonetic: foundWord.phonetic,
-          translation: foundWord.translation,
-          sentence: foundWord.sentence,
-          sentence_translation: foundWord.sentence_translation,
-          alternative_sentence: foundWord.alternative_sentence,
-          alternative_translation: foundWord.alternative_translation,
-          shadowing_tips: foundWord.shadowing_tips
-        };
+      // 1. Check curated common words DB first
+      if (typeof COMMON_WORDS_DB !== "undefined") {
+        const foundWord = COMMON_WORDS_DB.find(w => w.word.toLowerCase() === qLower);
+        if (foundWord) {
+          return {
+            text: foundWord.word,
+            type: "word",
+            pos: foundWord.pos,
+            phonetic: foundWord.phonetic,
+            translation: foundWord.translation,
+            sentence: foundWord.sentence,
+            sentence_translation: foundWord.sentence_translation,
+            alternative_sentence: foundWord.alternative_sentence,
+            alternative_translation: foundWord.alternative_translation,
+            shadowing_tips: foundWord.shadowing_tips
+          };
+        }
+      }
+
+      // 2. Fetch real translation and dictionary info
+      let translation = await this.translateText(q);
+      if (!translation || translation.toLowerCase() === qLower) {
+        translation = (typeof getBuiltinTranslation === "function" ? getBuiltinTranslation(q) : "") || `「${q}」`;
+      }
+
+      const dictInfo = await this.fetchDictionaryInfo(q);
+      const pos = dictInfo.pos || "常用單字";
+      const phonetic = dictInfo.phonetic || `/${q}/`;
+
+      // 3. Craft simple, short, high-frequency sentences (6-12 words)
+      let sentence = dictInfo.example;
+      if (!sentence) {
+        if (pos.includes("動詞") || pos.includes("v.")) {
+          sentence = `I try to ${q} as much as possible every day.`;
+        } else if (pos.includes("形容詞") || pos.includes("adj.")) {
+          sentence = `She is always very ${q} whenever we work together.`;
+        } else if (pos.includes("名詞") || pos.includes("n.")) {
+          sentence = `This is a very important ${q} that we should discuss.`;
+        } else {
+          sentence = `Could you tell me more about ${q}?`;
+        }
+      }
+
+      let sentenceTrans = await this.translateText(sentence);
+      if (!sentenceTrans || sentenceTrans.includes(q)) {
+        sentenceTrans = `你能多跟我分享一些關於「${translation}」的事情嗎？`;
+      }
+
+      const altSentence = `Practice saying '${q}' out loud to build muscle memory.`;
+      let altTrans = await this.translateText(altSentence);
+      if (!altTrans) {
+        altTrans = `大聲開口練習說出「${translation}」，訓練口腔肌肉記憶。`;
       }
 
       return {
         text: q,
         type: "word",
-        pos: "單字",
-        phonetic: `/${q}/`,
-        translation: `「${q}」`,
-        sentence: `Could you tell me more about ${q}?`,
-        sentence_translation: `你可以多跟我說一些關於 ${q} 的事嗎？`,
-        alternative_sentence: `I try to practice using ${q} every single day.`,
-        alternative_translation: `我試著每天都練習使用 ${q}。`,
-        shadowing_tips: "【簡單造句】這是一個短而清晰的高頻口語句，請隨音檔反覆跟讀 3~5 遍，訓練舌頭肌肉記憶。"
+        pos: pos,
+        phonetic: phonetic,
+        translation: translation,
+        sentence: sentence,
+        sentence_translation: sentenceTrans,
+        alternative_sentence: altSentence,
+        alternative_translation: altTrans,
+        shadowing_tips: "【簡單造句練習】這是一個短而清晰的高頻口語句，請隨音檔反覆跟讀 3~5 遍，訓練舌頭肌肉記憶。"
       };
     }
 
@@ -136,16 +273,39 @@ const API = {
   },
 
   async getHistory() {
+    let items = [];
     try {
       const res = await fetch(`${this.baseUrl}/api/history`);
       if (res.ok) {
-        return await res.json();
+        items = await res.json();
       }
     } catch (e) {
       console.warn("Could not load history from server, reading localStorage:", e);
     }
-    const local = localStorage.getItem("echoshadow_history");
-    return local ? JSON.parse(local) : [];
+    if (!items || items.length === 0) {
+      const local = localStorage.getItem("echoshadow_history");
+      items = local ? JSON.parse(local) : [];
+    }
+
+    // Auto-repair corrupt or placeholder translations in historical cache
+    if (Array.isArray(items) && items.length > 0) {
+      let changed = false;
+      items.forEach(h => {
+        const trans = (h.translation || "").trim();
+        const isCorruptOrPlaceholder = !trans || trans.includes("???") || /^「.*」$/.test(trans) || trans.includes("（道地美式日常口語）");
+        if (isCorruptOrPlaceholder && typeof getBuiltinTranslation === "function") {
+          const builtin = getBuiltinTranslation(h.text);
+          if (builtin) {
+            h.translation = builtin;
+            changed = true;
+          }
+        }
+      });
+      if (changed) {
+        localStorage.setItem("echoshadow_history", JSON.stringify(items));
+      }
+    }
+    return items;
   },
 
   async saveHistory(item) {
