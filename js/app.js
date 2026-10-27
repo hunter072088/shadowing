@@ -23,8 +23,45 @@ document.addEventListener("DOMContentLoaded", async () => {
       category: "all",
       level: "all",
       search: ""
-    }
+    },
+    // Multi-Item Batch Selection & Playlist (需求 3)
+    isHistoryBatchMode: false,
+    selectedHistoryIds: new Set(),
+    isPodcastBatchMode: false,
+    selectedPodcastIds: new Set()
   };
+
+  // ==========================================
+  // THEME MANAGEMENT (需求 2: 深淺色模式)
+  // ==========================================
+  const themeToggleBtn = document.getElementById("theme-toggle-btn");
+  const themeIcon = document.getElementById("theme-icon");
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem("echoshadow_theme") || "dark";
+    applyTheme(savedTheme);
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("echoshadow_theme", theme);
+    if (themeIcon) {
+      themeIcon.textContent = theme === "light" ? "☀️" : "🌙";
+    }
+    if (themeToggleBtn) {
+      themeToggleBtn.title = theme === "light" ? "目前為淺色模式，點擊切換深色" : "目前為深色模式，點擊切換淺色";
+    }
+  }
+
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") || "dark";
+      const nextTheme = current === "light" ? "dark" : "light";
+      applyTheme(nextTheme);
+    });
+  }
+
+  initTheme();
 
   // DOM Elements
   const tabs = document.querySelectorAll(".nav-tab");
@@ -50,26 +87,93 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.shadowEngine.setInterval(state.settings.interval);
   window.shadowEngine.setRepeatCount(state.settings.repeatCount);
 
-  // Initialize Speech Voices
+  // Initialize Speech Voices (需求 1: 健全語音載入與防空白機制)
   window.shadowEngine.onVoicesLoaded = (voices, selected) => {
     populateVoiceSelects(voices, selected);
   };
 
   function populateVoiceSelects(voices, selected) {
-    const voiceSelect = document.getElementById("settings-voice-select");
-    if (!voiceSelect) return;
-    voiceSelect.innerHTML = "";
-    voices.forEach(v => {
-      const opt = document.createElement("option");
-      opt.value = v.name;
-      opt.textContent = `${v.name} (${v.lang})`;
-      if (selected && selected.name === v.name) {
-        opt.selected = true;
-      } else if (state.settings.voiceName && state.settings.voiceName === v.name) {
-        opt.selected = true;
-        window.shadowEngine.setVoiceByName(v.name);
-      }
-      voiceSelect.appendChild(opt);
+    const settingsVoiceSelect = document.getElementById("settings-voice-select");
+    const quickVoiceSelect = document.getElementById("player-voice-quick-select");
+    
+    let voiceList = voices;
+    if (!voiceList || voiceList.length === 0) {
+      voiceList = window.shadowEngine.getAvailableVoices();
+    }
+
+    const selects = [settingsVoiceSelect, quickVoiceSelect].filter(Boolean);
+    if (selects.length === 0) return;
+
+    selects.forEach(sel => {
+      sel.innerHTML = "";
+    });
+
+    if (!voiceList || voiceList.length === 0) {
+      // 系統無傳回具體語音時的保證選項，防止選單空白
+      const fallbacks = [
+        { name: "Default US English", lang: "en-US", label: "🇺🇸 系統預設美式英語 (Default en-US)" },
+        { name: "UK English", lang: "en-GB", label: "🇬🇧 系統英式英語 (en-GB)" },
+        { name: "System Voice", lang: "en", label: "🎙️ 系統通用英語發音" }
+      ];
+      selects.forEach(sel => {
+        fallbacks.forEach(fb => {
+          const opt = document.createElement("option");
+          opt.value = fb.name;
+          opt.textContent = fb.label;
+          sel.appendChild(opt);
+        });
+      });
+      return;
+    }
+
+    // 優先排序：en-US / en-GB / 其他英語
+    const sorted = voiceList.slice().sort((a, b) => {
+      const aLang = (a.lang || "").toLowerCase();
+      const bLang = (b.lang || "").toLowerCase();
+      if (aLang.includes("us") && !bLang.includes("us")) return -1;
+      if (!aLang.includes("us") && bLang.includes("us")) return 1;
+      if (aLang.includes("gb") && !bLang.includes("gb")) return -1;
+      if (!aLang.includes("gb") && bLang.includes("gb")) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    selects.forEach(sel => {
+      sorted.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v.name;
+        let flag = "🎙️";
+        const langLower = (v.lang || "").toLowerCase();
+        if (langLower.includes("us")) flag = "🇺🇸";
+        else if (langLower.includes("gb") || langLower.includes("uk")) flag = "🇬🇧";
+        else if (langLower.includes("au")) flag = "🇦🇺";
+        else if (langLower.includes("ca")) flag = "🇨🇦";
+        else if (langLower.includes("in")) flag = "🇮🇳";
+
+        opt.textContent = `${flag} ${v.name} (${v.lang})`;
+        if (selected && selected.name === v.name) {
+          opt.selected = true;
+        } else if (state.settings.voiceName && state.settings.voiceName === v.name) {
+          opt.selected = true;
+          window.shadowEngine.setVoiceByName(v.name);
+        }
+        sel.appendChild(opt);
+      });
+    });
+  }
+
+  // 立即進行一次聲音清單填入
+  populateVoiceSelects(window.shadowEngine.getAvailableVoices(), window.shadowEngine.selectedVoice);
+
+  // 快捷切換發音監聽
+  const playerQuickVoice = document.getElementById("player-voice-quick-select");
+  if (playerQuickVoice) {
+    playerQuickVoice.addEventListener("change", (e) => {
+      const voiceName = e.target.value;
+      window.shadowEngine.setVoiceByName(voiceName);
+      state.settings.voiceName = voiceName;
+      API.saveSettings(state.settings);
+      const settingsVoice = document.getElementById("settings-voice-select");
+      if (settingsVoice) settingsVoice.value = voiceName;
     });
   }
 
@@ -471,6 +575,74 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // ==========================================
+  // PODCAST BATCH SELECTION & CONTROLS (需求 3)
+  // ==========================================
+  const togglePodcastBatchBtn = document.getElementById("toggle-podcast-batch-btn");
+  const podcastBatchBar = document.getElementById("podcast-batch-bar");
+  const podcastBatchActions = document.getElementById("podcast-batch-actions");
+  const podcastSelectedCount = document.getElementById("podcast-selected-count");
+  const podcastPlayCount = document.getElementById("podcast-play-count");
+  const podcastSelectAllBtn = document.getElementById("podcast-select-all-btn");
+  const podcastClearSelectBtn = document.getElementById("podcast-clear-select-btn");
+  const podcastBatchPlayBtn = document.getElementById("podcast-batch-play-btn");
+
+  function updatePodcastBatchUI() {
+    const count = state.selectedPodcastIds.size;
+    if (podcastSelectedCount) {
+      podcastSelectedCount.innerHTML = `已選取 <strong>${count}</strong> 個片語`;
+      podcastSelectedCount.style.display = state.isPodcastBatchMode ? "inline-block" : "none";
+    }
+    if (podcastBatchActions) {
+      podcastBatchActions.style.display = state.isPodcastBatchMode ? "flex" : "none";
+    }
+    if (podcastPlayCount) {
+      podcastPlayCount.textContent = count;
+    }
+    const icon = document.getElementById("podcast-batch-icon");
+    if (icon) {
+      icon.textContent = state.isPodcastBatchMode ? "✕ 結束多選" : "☑️ 批次多選跟讀";
+    }
+  }
+
+  if (togglePodcastBatchBtn) {
+    togglePodcastBatchBtn.addEventListener("click", () => {
+      state.isPodcastBatchMode = !state.isPodcastBatchMode;
+      if (!state.isPodcastBatchMode) {
+        state.selectedPodcastIds.clear();
+      }
+      updatePodcastBatchUI();
+      renderPodcastCards();
+    });
+  }
+
+  if (podcastSelectAllBtn) {
+    podcastSelectAllBtn.addEventListener("click", () => {
+      PODCAST_1314_PHRASES.forEach(p => state.selectedPodcastIds.add(p.id));
+      updatePodcastBatchUI();
+      renderPodcastCards();
+    });
+  }
+
+  if (podcastClearSelectBtn) {
+    podcastClearSelectBtn.addEventListener("click", () => {
+      state.selectedPodcastIds.clear();
+      updatePodcastBatchUI();
+      renderPodcastCards();
+    });
+  }
+
+  if (podcastBatchPlayBtn) {
+    podcastBatchPlayBtn.addEventListener("click", () => {
+      const selected = PODCAST_1314_PHRASES.filter(p => state.selectedPodcastIds.has(p.id));
+      if (selected.length === 0) {
+        alert("請先勾選要跟讀的片語！");
+        return;
+      }
+      startPlaylistShadowing(selected);
+    });
+  }
+
   function renderPodcastCards() {
     if (!podcastCardsGrid) return;
     podcastCardsGrid.innerHTML = "";
@@ -497,9 +669,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     filtered.forEach(item => {
       const isFav = state.history.some(h => h.text.toLowerCase() === item.text.toLowerCase() && h.favorite);
+      const isSelected = state.selectedPodcastIds.has(item.id);
       const card = document.createElement("div");
-      card.className = "podcast-card";
+      card.className = `podcast-card ${state.isPodcastBatchMode ? 'has-batch-mode' : ''} ${isSelected ? 'is-selected' : ''}`;
+      
+      const checkboxHtml = state.isPodcastBatchMode ? `
+        <label class="card-checkbox-wrap" onclick="event.stopPropagation()">
+          <input type="checkbox" class="card-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''}>
+        </label>
+      ` : '';
+
       card.innerHTML = `
+        ${checkboxHtml}
         <div class="card-header">
           <span class="card-category-badge">${item.category}</span>
           <div style="display:flex;align-items:center;gap:6px;">
@@ -526,6 +707,23 @@ document.addEventListener("DOMContentLoaded", async () => {
           </button>
         </div>
       `;
+
+      // Checkbox click listener
+      if (state.isPodcastBatchMode) {
+        const chk = card.querySelector(".card-checkbox");
+        if (chk) {
+          chk.addEventListener("change", (e) => {
+            if (e.target.checked) {
+              state.selectedPodcastIds.add(item.id);
+              card.classList.add("is-selected");
+            } else {
+              state.selectedPodcastIds.delete(item.id);
+              card.classList.remove("is-selected");
+            }
+            updatePodcastBatchUI();
+          });
+        }
+      }
 
       // Favorite click on podcast card
       const favBtn = card.querySelector(".card-fav-btn");
@@ -589,6 +787,118 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // ==========================================
+  // HISTORY BATCH SELECTION & CONTROLS (需求 3: 選取多個單字/片語)
+  // ==========================================
+  const toggleHistoryBatchBtn = document.getElementById("toggle-history-batch-btn");
+  const histBatchBar = document.getElementById("history-batch-bar");
+  const histBatchActions = document.getElementById("hist-batch-actions");
+  const histSelectedCount = document.getElementById("hist-selected-count");
+  const histPlayCount = document.getElementById("hist-play-count");
+  const histSelectAllBtn = document.getElementById("hist-select-all-btn");
+  const histClearSelectBtn = document.getElementById("hist-clear-select-btn");
+  const histBatchFavBtn = document.getElementById("hist-batch-fav-btn");
+  const histBatchDelBtn = document.getElementById("hist-batch-del-btn");
+  const histBatchPlayBtn = document.getElementById("hist-batch-play-btn");
+
+  function updateHistoryBatchUI() {
+    const count = state.selectedHistoryIds.size;
+    if (histSelectedCount) {
+      histSelectedCount.innerHTML = `已選取 <strong>${count}</strong> 項`;
+      histSelectedCount.style.display = state.isHistoryBatchMode ? "inline-block" : "none";
+    }
+    if (histBatchActions) {
+      histBatchActions.style.display = state.isHistoryBatchMode ? "flex" : "none";
+    }
+    if (histPlayCount) {
+      histPlayCount.textContent = count;
+    }
+    const icon = document.getElementById("hist-batch-icon");
+    if (icon) {
+      icon.textContent = state.isHistoryBatchMode ? "✕ 結束多選" : "☑️ 批次選取學習";
+    }
+  }
+
+  if (toggleHistoryBatchBtn) {
+    toggleHistoryBatchBtn.addEventListener("click", () => {
+      state.isHistoryBatchMode = !state.isHistoryBatchMode;
+      if (!state.isHistoryBatchMode) {
+        state.selectedHistoryIds.clear();
+      }
+      updateHistoryBatchUI();
+      renderHistoryList();
+    });
+  }
+
+  if (histSelectAllBtn) {
+    histSelectAllBtn.addEventListener("click", () => {
+      let filtered = state.history;
+      if (state.historyFilter === "fav") {
+        filtered = state.history.filter(h => h.favorite);
+      } else if (state.historyFilter === "phrase") {
+        filtered = state.history.filter(h => h.type === "phrase");
+      } else if (state.historyFilter === "word") {
+        filtered = state.history.filter(h => h.type === "word");
+      }
+      filtered.forEach(h => state.selectedHistoryIds.add(h.id));
+      updateHistoryBatchUI();
+      renderHistoryList();
+    });
+  }
+
+  if (histClearSelectBtn) {
+    histClearSelectBtn.addEventListener("click", () => {
+      state.selectedHistoryIds.clear();
+      updateHistoryBatchUI();
+      renderHistoryList();
+    });
+  }
+
+  if (histBatchFavBtn) {
+    histBatchFavBtn.addEventListener("click", async () => {
+      if (state.selectedHistoryIds.size === 0) {
+        alert("請先勾選要加入最愛的生詞或片語！");
+        return;
+      }
+      const toFav = state.history.filter(h => state.selectedHistoryIds.has(h.id));
+      for (const item of toFav) {
+        await API.toggleFavorite(item.id, item.text, { ...item, favorite: true });
+      }
+      state.history = await API.getHistory();
+      renderHistoryList();
+    });
+  }
+
+  if (histBatchDelBtn) {
+    histBatchDelBtn.addEventListener("click", async () => {
+      const count = state.selectedHistoryIds.size;
+      if (count === 0) {
+        alert("請先勾選要刪除的項目！");
+        return;
+      }
+      if (confirm(`確定要刪除選取的 ${count} 筆學習記錄嗎？`)) {
+        for (const id of state.selectedHistoryIds) {
+          await API.deleteHistory(id);
+        }
+        state.selectedHistoryIds.clear();
+        state.history = await API.getHistory();
+        updateHistoryBatchUI();
+        renderHistoryList();
+      }
+    });
+  }
+
+  if (histBatchPlayBtn) {
+    histBatchPlayBtn.addEventListener("click", () => {
+      const selected = state.history.filter(h => state.selectedHistoryIds.has(h.id));
+      if (selected.length === 0) {
+        alert("請先勾選要跟讀的單字或片語！");
+        return;
+      }
+      startPlaylistShadowing(selected);
+    });
+  }
+
   function renderHistoryList() {
     if (!historyList) return;
     historyList.innerHTML = "";
@@ -645,10 +955,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     filteredHistory.forEach(item => {
       const card = document.createElement("div");
       const isPhrase = item.type === "phrase";
-      card.className = `history-card ${isPhrase ? 'type-phrase' : 'type-word'}`;
+      const isSelected = state.selectedHistoryIds.has(item.id);
+      card.className = `history-card ${isPhrase ? 'type-phrase' : 'type-word'} ${state.isHistoryBatchMode ? 'has-batch-mode' : ''} ${isSelected ? 'is-selected' : ''}`;
       const isFav = !!item.favorite;
 
+      const checkboxHtml = state.isHistoryBatchMode ? `
+        <label class="card-checkbox-wrap" onclick="event.stopPropagation()">
+          <input type="checkbox" class="card-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''}>
+        </label>
+      ` : '';
+
       card.innerHTML = `
+        ${checkboxHtml}
         <div class="history-badge ${isPhrase ? 'badge-phrase' : 'badge-word'}">
           ${isPhrase ? '🎧 片語' : '🔤 單字'}
         </div>
@@ -672,6 +990,23 @@ document.addEventListener("DOMContentLoaded", async () => {
           </button>
         </div>
       `;
+
+      // Checkbox listener
+      if (state.isHistoryBatchMode) {
+        const chk = card.querySelector(".card-checkbox");
+        if (chk) {
+          chk.addEventListener("change", (e) => {
+            if (e.target.checked) {
+              state.selectedHistoryIds.add(item.id);
+              card.classList.add("is-selected");
+            } else {
+              state.selectedHistoryIds.delete(item.id);
+              card.classList.remove("is-selected");
+            }
+            updateHistoryBatchUI();
+          });
+        }
+      }
 
       // Favorite toggle inside history card
       card.querySelector(".card-fav-btn").addEventListener("click", async (e) => {
@@ -836,6 +1171,46 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // Playlist Multi-Item Shadowing Controls (需求 3: 連續跟讀播放清單)
+  const playerPrevBtn = document.getElementById("player-prev-btn");
+  const playerNextBtn = document.getElementById("player-next-btn");
+  const playerPlaylistBadge = document.getElementById("player-playlist-badge");
+
+  if (playerPrevBtn) {
+    playerPrevBtn.addEventListener("click", () => {
+      window.shadowEngine.prevPlaylistItem();
+    });
+  }
+
+  if (playerNextBtn) {
+    playerNextBtn.addEventListener("click", () => {
+      window.shadowEngine.nextPlaylistItem();
+    });
+  }
+
+  function startPlaylistShadowing(items) {
+    if (!items || items.length === 0) return;
+
+    if (playerPrevBtn) playerPrevBtn.style.display = "inline-flex";
+    if (playerNextBtn) playerNextBtn.style.display = "inline-flex";
+    if (playerPlaylistBadge) playerPlaylistBadge.style.display = "inline-flex";
+
+    window.shadowEngine.onPlaylistItemChange = (item, index, total) => {
+      if (playerPlaylistBadge) {
+        playerPlaylistBadge.innerHTML = `📻 清單跟讀：第 <strong>${index + 1}</strong> / ${total} 項`;
+      }
+      const currentTextDisplay = document.getElementById("player-current-text");
+      if (currentTextDisplay) {
+        const itemType = item.type === "word" ? "🔤 單字" : "🎧 片語";
+        const title = item.text || item.query || "";
+        const sentence = item.sentence ? ` — "${item.sentence}"` : "";
+        currentTextDisplay.innerHTML = `<span style="color:#38bdf8;">[${itemType}] ${escapeHtml(title)}</span>${escapeHtml(sentence)}`;
+      }
+    };
+
+    window.shadowEngine.playPlaylist(items);
+  }
+
   function startShadowingTarget(text, targetEl = null) {
     if (!text) return;
     state.activePlaybackText = text;
@@ -909,11 +1284,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       playBtn.classList.remove("playing");
     }
 
+    // Toggle playlist mode navigation buttons
+    const isPlaylist = !!playbackState.isPlaylistMode;
+    if (playerPrevBtn) playerPrevBtn.style.display = isPlaylist ? "inline-flex" : "none";
+    if (playerNextBtn) playerNextBtn.style.display = isPlaylist ? "inline-flex" : "none";
+    if (playerPlaylistBadge) playerPlaylistBadge.style.display = isPlaylist ? "inline-flex" : "none";
+
     const indicator = document.getElementById("player-mode-indicator");
     if (indicator) {
       if (playbackState.isPlaying) {
         if (playbackState.isIntervalWaiting) {
-          indicator.textContent = "跟讀停頓中 (請模仿跟讀)";
+          indicator.textContent = isPlaylist ? "清單切換停頓中 (請模仿跟讀)" : "跟讀停頓中 (請模仿跟讀)";
           indicator.className = "player-status-badge status-waiting";
         } else {
           indicator.textContent = "母語音檔播放中 (仔細聆聽)";
@@ -987,6 +1368,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ==========================================
   if (settingsBtn && settingsModal) {
     settingsBtn.addEventListener("click", () => {
+      // 確保開啟設定視窗時載入最新的語音清單
+      populateVoiceSelects(window.shadowEngine.getAvailableVoices(), window.shadowEngine.selectedVoice);
+
       const apiKeyInput = document.getElementById("settings-api-key");
       const rateInput = document.getElementById("settings-rate-input");
       const intervalInput = document.getElementById("settings-interval-input");

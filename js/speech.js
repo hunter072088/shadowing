@@ -28,25 +28,41 @@ class ShadowingSpeechEngine {
     this.onIntervalCountdown = null; // (secondsRemaining)
     this.onWordBoundary = null; // (charIndex, charLength)
     this.onSentenceFinish = null;
+    this.onVoicesLoaded = null;
+
+    // Multi-Item Playlist Loop State (Requirement 3)
+    this.playlist = [];
+    this.playlistIndex = 0;
+    this.isPlaylistMode = false;
+    this.playlistTransitionTimer = null;
+    this.onPlaylistItemChange = null; // (item, index, total)
 
     this.initVoices();
   }
 
   initVoices() {
     const updateVoices = () => {
-      const allVoices = this.synth.getVoices();
-      // Filter English voices
-      this.voices = allVoices.filter(v => v.lang.startsWith("en"));
+      const allVoices = this.synth ? this.synth.getVoices() : [];
+      if (!allVoices || allVoices.length === 0) return false;
+
+      // Filter English voices case-insensitively
+      this.voices = allVoices.filter(v => {
+        const lang = (v.lang || "").toLowerCase().replace(/_/g, "-");
+        return lang.startsWith("en");
+      });
+
       if (this.voices.length === 0) {
-        this.voices = allVoices; // fallback
+        this.voices = allVoices; // Fallback to all system voices
       }
 
-      // Default prefer US English natural/neural voices
+      // Default prefer natural/neural US voices (Google US, Jenny, Samantha, Natural)
       if (!this.selectedVoice && this.voices.length > 0) {
-        const preferred = this.voices.find(v => 
-          (v.lang === "en-US" || v.lang === "en_US") && 
-          (v.name.includes("Natural") || v.name.includes("Google") || v.name.includes("Jenny") || v.name.includes("Samantha") || v.name.includes("David"))
-        ) || this.voices.find(v => v.lang.startsWith("en-US")) || this.voices[0];
+        const preferred = this.voices.find(v => {
+          const l = (v.lang || "").toLowerCase();
+          const n = (v.name || "").toLowerCase();
+          return (l.includes("en-us") || l.includes("en_us")) &&
+                 (n.includes("natural") || n.includes("google") || n.includes("jenny") || n.includes("samantha") || n.includes("aria") || n.includes("guy"));
+        }) || this.voices.find(v => (v.lang || "").toLowerCase().includes("en-us")) || this.voices[0];
         
         this.selectedVoice = preferred;
       }
@@ -54,15 +70,43 @@ class ShadowingSpeechEngine {
       if (this.onVoicesLoaded) {
         this.onVoicesLoaded(this.voices, this.selectedVoice);
       }
+      return true;
     };
 
+    // Attempt immediate load
     updateVoices();
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = updateVoices;
+
+    // Listen to onvoiceschanged (standard)
+    if (typeof speechSynthesis !== "undefined") {
+      speechSynthesis.onvoiceschanged = () => {
+        updateVoices();
+      };
+
+      // Periodic retry for Chrome Android & Safari where onvoiceschanged may delay or fail to fire
+      let retries = 0;
+      const timer = setInterval(() => {
+        retries++;
+        const loaded = updateVoices();
+        if (loaded || retries >= 12) {
+          clearInterval(timer);
+        }
+      }, 250);
     }
   }
 
+  getAvailableVoices() {
+    if (this.synth) {
+      const all = this.synth.getVoices();
+      if (all && all.length > 0) {
+        const en = all.filter(v => (v.lang || "").toLowerCase().replace(/_/g, "-").startsWith("en"));
+        this.voices = en.length > 0 ? en : all;
+      }
+    }
+    return this.voices;
+  }
+
   setVoiceByName(name) {
+    if (!name) return false;
     const found = this.voices.find(v => v.name === name);
     if (found) {
       this.selectedVoice = found;
@@ -83,11 +127,89 @@ class ShadowingSpeechEngine {
     this.repeatCount = count === "inf" ? Infinity : parseInt(count, 10);
   }
 
+  // ==========================================
+  // PLAYLIST SHADOWING LOOP (Requirement 3)
+  // ==========================================
+  playPlaylist(items, options = {}) {
+    if (!items || items.length === 0) return;
+    this.stop();
+    this.playlist = items.slice();
+    this.playlistIndex = 0;
+    this.isPlaylistMode = true;
+    this._playPlaylistItem(0, options);
+  }
+
+  _playPlaylistItem(index, options = {}) {
+    if (index < 0 || index >= this.playlist.length) {
+      this.isPlaylistMode = false;
+      this.stop();
+      return;
+    }
+
+    this.playlistIndex = index;
+    const item = this.playlist[index];
+    
+    // Determine shadowing text: prefer sentence, fallback to text / query / phrase / word
+    const textToPlay = item.sentence || item.text || item.query || item.phrase || item.word || "";
+    
+    if (this.onPlaylistItemChange) {
+      this.onPlaylistItemChange(item, this.playlistIndex, this.playlist.length);
+    }
+
+    this.play(textToPlay, {
+      ...options,
+      isFromPlaylist: true
+    });
+  }
+
+  nextPlaylistItem() {
+    if (!this.isPlaylistMode || this.playlist.length === 0) return;
+    clearTimeout(this.playlistTransitionTimer);
+    const nextIdx = this.playlistIndex + 1;
+    if (nextIdx < this.playlist.length) {
+      this._playPlaylistItem(nextIdx);
+    } else {
+      // Loop back to first item
+      this._playPlaylistItem(0);
+    }
+  }
+
+  prevPlaylistItem() {
+    if (!this.isPlaylistMode || this.playlist.length === 0) return;
+    clearTimeout(this.playlistTransitionTimer);
+    const prevIdx = this.playlistIndex - 1;
+    if (prevIdx >= 0) {
+      this._playPlaylistItem(prevIdx);
+    } else {
+      this._playPlaylistItem(this.playlist.length - 1);
+    }
+  }
+
+  _startPlaylistTransition() {
+    this.isIntervalWaiting = true;
+    this._notifyState();
+
+    if (this.onIntervalCountdown) {
+      this.onIntervalCountdown(1.5);
+    }
+
+    clearTimeout(this.playlistTransitionTimer);
+    this.playlistTransitionTimer = setTimeout(() => {
+      this.nextPlaylistItem();
+    }, 1500);
+  }
+
   play(text, options = {}) {
     if (!text || text.trim() === "") return;
 
-    // Stop any existing session
-    this.stop();
+    // Stop current speech
+    if (!options.isFromPlaylist) {
+      this.stop();
+    } else {
+      clearInterval(this.intervalTimer);
+      clearTimeout(this.playlistTransitionTimer);
+      if (this.synth) this.synth.cancel();
+    }
 
     this.currentText = text.trim();
     if (options.rate !== undefined) this.rate = options.rate;
@@ -117,7 +239,7 @@ class ShadowingSpeechEngine {
     utterance.pitch = this.pitch;
     if (this.selectedVoice) {
       utterance.voice = this.selectedVoice;
-      utterance.lang = this.selectedVoice.lang;
+      utterance.lang = this.selectedVoice.lang || "en-US";
     } else {
       utterance.lang = "en-US";
     }
@@ -140,19 +262,28 @@ class ShadowingSpeechEngine {
         this.onSentenceFinish(this.currentIteration, this.repeatCount);
       }
 
-      // Check if we should repeat
+      // Check if we should repeat this sentence
       if (this.currentIteration < this.repeatCount || this.repeatCount === Infinity) {
         this._startShadowingInterval();
       } else {
-        // Finished all loops
-        this.stop();
+        // Finished all loops for current sentence
+        if (this.isPlaylistMode && this.playlist.length > 0) {
+          // Playlist mode: pause briefly and advance to next item!
+          this._startPlaylistTransition();
+        } else {
+          this.stop();
+        }
       }
     };
 
     utterance.onerror = (e) => {
       console.warn("Speech error:", e);
       if (this.isPlaying) {
-        this.stop();
+        if (this.isPlaylistMode) {
+          this._startPlaylistTransition();
+        } else {
+          this.stop();
+        }
       }
     };
 
@@ -226,6 +357,7 @@ class ShadowingSpeechEngine {
     this.isPaused = false;
     this.isIntervalWaiting = false;
     clearInterval(this.intervalTimer);
+    clearTimeout(this.playlistTransitionTimer);
     if (this.synth) {
       this.synth.cancel();
     }
@@ -238,6 +370,8 @@ class ShadowingSpeechEngine {
   toggle() {
     if (this.isPlaying) {
       this.stop();
+    } else if (this.isPlaylistMode && this.playlist.length > 0) {
+      this._playPlaylistItem(this.playlistIndex);
     } else if (this.currentText) {
       this.play(this.currentText);
     }
@@ -252,7 +386,10 @@ class ShadowingSpeechEngine {
         currentIteration: this.currentIteration,
         repeatCount: this.repeatCount,
         rate: this.rate,
-        interval: this.intervalSeconds
+        interval: this.intervalSeconds,
+        isPlaylistMode: this.isPlaylistMode,
+        playlistIndex: this.playlistIndex,
+        playlistTotal: this.playlist ? this.playlist.length : 0
       });
     }
   }

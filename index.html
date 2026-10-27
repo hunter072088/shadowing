@@ -78,6 +78,9 @@
 
     <!-- Header Actions -->
     <div class="header-actions">
+      <button class="icon-btn theme-toggle-btn" id="theme-toggle-btn" title="切換深色/淺色模式" aria-label="切換深淺色模式">
+        <span id="theme-icon">🌙</span>
+      </button>
       <button class="action-pill-btn header-mobile-btn" id="open-mobile-modal-btn" title="手機安裝與同網連線">
         <span>📱</span> 手機安裝
       </button>
@@ -346,6 +349,23 @@
             🎲 換一批推薦
           </button>
         </div>
+        <!-- Batch Select Action Bar for Podcast Library (需求 3) -->
+        <div class="batch-select-bar" id="podcast-batch-bar" style="margin-top: 1rem;">
+          <div class="batch-select-left">
+            <button class="action-pill-btn" id="toggle-podcast-batch-btn" type="button">
+              <span id="podcast-batch-icon">☑️</span> 批次選取學習
+            </button>
+            <span class="batch-selected-count" id="podcast-selected-count" style="display: none;">已選 <strong>0</strong> 個片語</span>
+          </div>
+          <div class="batch-select-actions" id="podcast-batch-actions" style="display: none;">
+            <button class="btn-secondary mini-btn" id="podcast-select-all-btn" type="button">全選</button>
+            <button class="btn-secondary mini-btn" id="podcast-clear-select-btn" type="button">清除選取</button>
+            <button class="primary-btn mini-btn" id="podcast-batch-play-btn" type="button" style="background: linear-gradient(135deg, #10b981, #059669);">
+              <span>🎧</span> 連續跟讀選取片語 (<span id="podcast-play-count">0</span>)
+            </button>
+          </div>
+        </div>
+
       </div>
 
       <!-- Cards Grid -->
@@ -389,6 +409,25 @@
         </div>
       </div>
 
+      <!-- Multi-Item Batch Selection Bar (Requirement 3) -->
+      <div class="batch-select-bar" id="history-batch-bar" style="margin-top: 1rem;">
+        <div class="batch-select-left">
+          <button class="action-pill-btn" id="toggle-history-batch-btn" type="button">
+            <span id="hist-batch-icon">☑️</span> 批次選取學習
+          </button>
+          <span class="batch-selected-count" id="hist-selected-count" style="display: none;">已選取 <strong>0</strong> 項</span>
+        </div>
+        <div class="batch-select-actions" id="hist-batch-actions" style="display: none;">
+          <button class="btn-secondary mini-btn" id="hist-select-all-btn" type="button">全選</button>
+          <button class="btn-secondary mini-btn" id="hist-clear-select-btn" type="button">取消選取</button>
+          <button class="primary-btn mini-btn" id="hist-batch-play-btn" type="button" style="background: linear-gradient(135deg, #10b981, #059669);">
+            <span>🎧</span> 連續跟讀選取項目 (<span id="hist-play-count">0</span>)
+          </button>
+          <button class="btn-secondary mini-btn" id="hist-batch-fav-btn" type="button">⭐ 批次加最愛</button>
+          <button class="btn-danger mini-btn" id="hist-batch-del-btn" type="button">🗑️ 批次刪除</button>
+        </div>
+      </div>
+
       <div class="history-list" id="history-list"></div>
     </section>
 
@@ -412,6 +451,10 @@
     <!-- Center: Main Controls & Loop Countdown -->
     <div class="player-center">
       <div class="player-controls-row">
+        <button class="playlist-step-btn" id="player-prev-btn" title="播放清單：上一項" aria-label="上一項" style="display: none;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line></svg>
+        </button>
+
         <button class="control-icon-btn" id="player-stop-btn" title="停止播放 (Esc)" aria-label="停止">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
         </button>
@@ -426,9 +469,17 @@
           </svg>
         </button>
 
+        <button class="playlist-step-btn" id="player-next-btn" title="播放清單：下一項" aria-label="下一項" style="display: none;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line></svg>
+        </button>
+
         <div class="loop-status-pill" id="player-loop-status">
           <span class="pulse-dot"></span> 第 <strong>1</strong> / 3 遍跟讀
         </div>
+
+        <span id="player-playlist-badge" class="player-playlist-badge" style="display: none;">
+          📻 清單跟讀：第 <strong>1</strong> / 1 項
+        </span>
       </div>
 
       <div class="player-interval-countdown" id="player-countdown">
@@ -438,6 +489,10 @@
 
     <!-- Right: Speed, Repeats, and Interval Delays -->
     <div class="player-right">
+      <div class="player-select-group">
+        <label for="player-voice-quick-select">發音：</label>
+        <select class="player-select" id="player-voice-quick-select" style="max-width: 130px;" title="快速切換發音聲音"></select>
+      </div>
       <div class="player-select-group">
         <label for="player-speed-select">語速：</label>
         <select class="player-select" id="player-speed-select">
